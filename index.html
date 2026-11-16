@@ -103,6 +103,31 @@
   .bw { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
   .bw input { margin: 0; }
   .bw button { padding: 14px 18px; font-size: 16px; }
+  .install { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px 14px; margin-top: 14px; }
+  .install img { width: 40px; height: 40px; border-radius: 10px; }
+  .install .t { flex: 1; font-size: 14px; line-height: 1.3; }
+  .install .t b { display: block; font-size: 15px; }
+  .install .t span { color: var(--muted); }
+  .install .go { padding: 10px 14px; font-size: 15px; }
+  .install .x { background: none; color: var(--muted); padding: 6px; font-size: 20px; font-weight: 400; }
+  .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: flex-end; z-index: 10; }
+  .sheet { width: 100%; background: var(--card); border-top: 1px solid var(--line); border-radius: 20px 20px 0 0;
+    padding: 22px 20px max(22px, env(safe-area-inset-bottom)); }
+  .sheet h3 { margin: 0 0 14px; font-size: 22px; }
+  .sheet ol { margin: 0 0 18px; padding-left: 22px; font-size: 17px; line-height: 1.7; }
+  .sheet .share { display: inline-block; vertical-align: -4px; width: 20px; height: 20px; color: #4da3ff; }
+  .sheet .hint { color: var(--muted); font-size: 14px; margin: -8px 0 16px; }
+  .sheet button { width: 100%; }
+  .pointer { position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); font-size: 34px; z-index: 11;
+    animation: bob 1s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translate(-50%, -8px); } }
+  .backup .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .backup .row2 button { padding: 14px 10px; font-size: 16px; }
+  .nudge { background: rgba(245,165,36,.1); border: 1px solid rgba(245,165,36,.35); border-radius: 14px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px; }
+  .nudge span { flex: 1; }
+  .nudge button { padding: 10px 14px; font-size: 15px; }
   .small-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: 4px; }
 </style>
 </head>
@@ -120,6 +145,13 @@
   <div class="bar" id="barwrap"><div id="bar"></div></div>
 </header>
 <main id="main"></main>
+<div class="install" id="install" hidden>
+  <img src="icon-192.png" alt="">
+  <div class="t"><b>Install Lift</b><span>Open it from your home screen like an app</span></div>
+  <button class="primary go" id="installGo">Install</button>
+  <button class="x" id="installX" aria-label="Dismiss">×</button>
+</div>
+<div id="sheetHost"></div>
 <footer>
   <button class="link" id="undo">↩ Undo</button>
   <select id="pick" aria-label="Change workout"></select>
@@ -220,7 +252,7 @@ function makeTable(name, key, fields, sortFn) {
     name,
     all: () => lsGet(key, []),
     add(recs) {
-      lsSet(key, lsGet(key, []).concat(recs));
+      lsSet(key, lsGet(key, []).concat(recs).sort(sortFn));
       if (CONFIGURED) lsSet(pk, lsGet(pk, []).concat(recs));
       Sync.push();
     },
@@ -549,8 +581,22 @@ function renderDashboard() {
       </div>`).join("")}
     </div>` : `<div class="card empty">No sets logged yet.<br>Fill in weight × reps and hit Finish.</div>`}
 
+    <div class="sec">Backup</div>
+    <div class="card backup">
+      <div class="last" style="margin-top:0">${Backup.last()
+        ? `Last backup: <b>${esc(prettyDate(new Date(Backup.last()).toISOString().slice(0, 10)))}</b>`
+        : `<b>No backup yet.</b> Save one to Files / iCloud Drive / Google Drive so your lifts survive a new phone.`}</div>
+      <div class="row2">
+        <button class="primary" id="bkSave">Back up now</button>
+        <button class="secondary" id="bkLoad">Restore</button>
+      </div>
+      <input type="file" id="bkFile" accept=".json,application/json" hidden>
+      <div class="msg" id="bkMsg"></div>
+    </div>
+
     <div class="actions"><button class="secondary" id="back">← Back</button></div>
     <div class="small-actions">
+      ${Install.available() ? `<button class="link" id="installLink">📲 Install app</button>` : ""}
       ${user ? `<button class="link" id="planSave">Save plan to database</button>
                 <button class="link" id="signOut">Sign out (${esc(user.email || "")})</button>`
              : CONFIGURED && sb ? `<button class="link" id="signIn">Sign in to sync</button>` : ""}
@@ -558,6 +604,24 @@ function renderDashboard() {
     <div class="msg" id="dashMsg" style="text-align:center"></div>`;
 
   $("back").onclick = () => { view = "workout"; render(); window.scrollTo(0, 0); };
+  if ($("installLink")) $("installLink").onclick = () => Install.go();
+  $("bkSave").onclick = async () => {
+    const saved = await Backup.save();
+    if (saved) render();
+  };
+  $("bkLoad").onclick = () => $("bkFile").click();
+  $("bkFile").onchange = async () => {
+    const f = $("bkFile").files[0];
+    if (!f) return;
+    try {
+      const r = await Backup.restore(f);
+      render();
+      $("bkMsg").textContent = `Restored ${r.sets} sets and ${r.bodyweight} weigh-ins (${r.skipped} already here).`;
+    } catch (e) {
+      $("bkMsg").textContent = e.message || "That file couldn't be read.";
+      $("bkMsg").className = "msg bad";
+    }
+  };
   $("bwSave").onclick = () => {
     const v = parseFloat($("bwInput").value);
     if (!(v > 0)) return;
@@ -602,11 +666,13 @@ function render() {
         <p>${logged} sets logged</p>
         <p style="margin-top:6px">Next up: <b>${esc(next.name)}</b> (${esc(next.when)})</p>
       </div>
+      ${Backup.due() ? `<div class="nudge"><span>${Backup.last() ? "It's been over a week since your last backup." : "Back up your lifts so they survive a new phone."}</span><button class="primary" id="bkNudge">Back up</button></div>` : ""}
       <div class="actions">
         <button class="primary" id="nextDay">Start ${esc(next.name)}</button>
         <button class="secondary" id="dash">Dashboard</button>
       </div>`;
     $("dash").onclick = () => { view = "dashboard"; render(); window.scrollTo(0, 0); };
+    if ($("bkNudge")) $("bkNudge").onclick = async () => { if (await Backup.save()) render(); };
     $("nextDay").onclick = () => { state = fresh((state.day + 1) % PLAN.length); save(); render(); };
     return;
   }
@@ -733,10 +799,125 @@ $("export").onclick = () => {
   document.body.appendChild(a); a.click(); a.remove();
 };
 
+// ------------------------------------------------------------ backup --------
+// A backup is one .json file with every set, weigh-in, and the plan.
+// On phones it opens the share sheet → "Save to Files" (iCloud Drive / Google Drive),
+// so it survives deleting the app, clearing the browser, or a new phone.
+const Backup = {
+  KEY: "lift-last-backup",
+  last: () => lsGet("lift-last-backup", null),
+  due() {
+    const hasData = Sets.all().length + Bodyweight.all().length > 0;
+    const l = this.last();
+    return hasData && (!l || Date.now() - l > 7 * 864e5);
+  },
+  build() {
+    return { app: "lift", version: 1, exported_at: new Date().toISOString(),
+             sets: Sets.all(), bodyweight: Bodyweight.all(), plan: lsGet(PLAN_KEY, null) };
+  },
+  download(blob, name) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  },
+  async save() {
+    const name = `lift-backup-${localDate()}.json`;
+    const blob = new Blob([JSON.stringify(this.build())], { type: "application/json" });
+    let file = null;
+    try { file = new File([blob], name, { type: "application/json" }); } catch (e) {}
+    try {
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Lift backup" });
+      } else {
+        this.download(blob, name);
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") return false;   // user closed the share sheet
+      this.download(blob, name);
+    }
+    lsSet(this.KEY, Date.now());
+    return true;
+  },
+  async restore(file) {
+    let data;
+    try { data = JSON.parse(await file.text()); } catch (e) { throw new Error("That isn't a Lift backup file."); }
+    if (!data || data.app !== "lift" || !Array.isArray(data.sets)) throw new Error("That isn't a Lift backup file.");
+    const okSet = r => r && typeof r.id === "string" && r.session_id && r.date && r.workout && r.exercise && r.set_number;
+    const okBw = r => r && typeof r.id === "string" && r.date && Number(r.weight_lb) > 0;
+    const haveS = new Set(Sets.all().map(r => r.id));
+    const haveB = new Set(Bodyweight.all().map(r => r.id));
+    const newS = data.sets.filter(okSet).filter(r => !haveS.has(r.id));
+    const newB = (data.bodyweight || []).filter(okBw).filter(r => !haveB.has(r.id));
+    if (newS.length) Sets.add(newS);
+    if (newB.length) Bodyweight.add(newB);
+    if (!lsGet(PLAN_KEY, null) && validPlan(data.plan)) { lsSet(PLAN_KEY, data.plan); setPlan(data.plan); }
+    return { sets: newS.length, bodyweight: newB.length,
+             skipped: data.sets.length + (data.bodyweight || []).length - newS.length - newB.length };
+  },
+};
+// Ask the browser not to auto-clear this app's data
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+// ------------------------------------------------------- install app --------
+// Android/desktop Chrome: real install prompt. iPhone: Apple has no API for this,
+// so the button shows the Share → "Add to Home Screen" steps instead.
+const Install = {
+  prompt: null,
+  KEY: "lift-install-dismissed",
+  standalone: () => (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true,
+  ios: () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
+  available() { return !this.standalone() && (!!this.prompt || this.ios()); },
+  refresh() {
+    const show = this.available() && !lsGet(this.KEY, false);
+    $("install").hidden = !show;
+  },
+  async go() {
+    if (this.prompt) {
+      this.prompt.prompt();
+      const choice = await this.prompt.userChoice;
+      this.prompt = null;
+      if (choice && choice.outcome === "accepted") lsSet(this.KEY, true);
+      this.refresh();
+      return;
+    }
+    this.sheet();
+  },
+  sheet() {
+    const notSafari = /crios|fxios|edgios/i.test(navigator.userAgent);
+    $("sheetHost").innerHTML = `
+      <div class="sheet-bg" id="sheetBg">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <h3>Add Lift to your Home Screen</h3>
+          <ol>
+            <li>Tap <svg class="share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 11v9h14v-9"/></svg> <b>Share</b> ${notSafari ? "in your browser's menu" : "at the bottom of Safari"}</li>
+            <li>Scroll down, tap <b>Add to Home Screen</b></li>
+            <li>Tap <b>Add</b></li>
+          </ol>
+          ${notSafari ? `<div class="hint">Easiest from Safari: open this page there first.</div>` : ""}
+          <button class="primary" id="sheetOk">Got it</button>
+        </div>
+      </div>
+      ${notSafari ? "" : `<div class="pointer">👇</div>`}`;
+    const close = () => { $("sheetHost").innerHTML = ""; };
+    $("sheetOk").onclick = close;
+    $("sheetBg").onclick = close;
+  },
+};
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); Install.prompt = e; Install.refresh(); });
+window.addEventListener("appinstalled", () => { Install.prompt = null; lsSet(Install.KEY, true); Install.refresh(); });
+$("installGo").onclick = () => Install.go();
+$("installX").onclick = () => { lsSet(Install.KEY, true); Install.refresh(); };
+
+// Offline support + makes Android treat it as an installable app
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(e => console.warn("Service worker failed", e));
+}
+
 // ------------------------------------------------------------- start --------
 state = load();
 render();
 initDb();
+Install.refresh();
 </script>
 </body>
 </html>

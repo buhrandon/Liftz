@@ -11,6 +11,8 @@ It works with **no database at all**: leave `config.js` blank and everything is 
 | `index.html` | The whole app |
 | `config.js` | Your Supabase URL + key (blank = phone-only mode) |
 | `schema.sql` | Database tables, security rules, and handy views. Paste it into Supabase once. |
+| `manifest.webmanifest`, `icon-*.png` | Home-screen app icon and name |
+| `sw.js` | Lets the app open offline and lets Android install it |
 | `README.md` | This guide |
 
 ---
@@ -18,10 +20,10 @@ It works with **no database at all**: leave `config.js` blank and everything is 
 ## Part 1: Put the app online (GitHub Pages, ~2 min)
 
 1. Create a new **public** repo on GitHub, e.g. `lift`.
-2. **Add file → Upload files**, then drop in `index.html`, `config.js`, and `schema.sql`, and commit.
+2. **Add file → Upload files**, then drop in `index.html`, `config.js`, `schema.sql`, `manifest.webmanifest`, `sw.js`, and the three `icon-*.png` files, and commit.
 3. **Settings → Pages**: set Source to **Deploy from a branch**, branch `main`, folder `/ (root)`, then click **Save**.
 4. About a minute later, open `https://<your-username>.github.io/lift/` on your phone.
-5. In Safari, tap **Share → Add to Home Screen**.
+5. Tap **Install** on the banner in the app. Android shows the install popup. iPhone shows the Share → **Add to Home Screen** steps, since Apple doesn't let websites do it automatically.
 
 At this point the app works in phone-only mode. The footer says *"Saved on this phone only."*
 
@@ -122,6 +124,17 @@ Run through this once after setup:
 | ● Syncing 3… / Offline · 3 waiting | Saved on the phone, will upload |
 | ● Sync problem · will retry | Supabase returned an error (see below) |
 | Not signed in | You tapped "Continue without syncing". Data is waiting and uploads once you sign in |
+
+## Backups (no database needed)
+
+Without the database, everything lives in the phone's browser storage. That's wiped if the app is deleted from the home screen, Safari's website data is cleared, or the phone is replaced. To protect it:
+
+- **Dashboard → Back up now** opens the share sheet. Tap **Save to Files** and pick iCloud Drive or Google Drive. You get one `lift-backup-YYYY-MM-DD.json` file with every set, weigh-in, and the plan.
+- **Dashboard → Restore** loads a backup file. It merges with what's already there, so restoring the same file twice never duplicates anything.
+- If it's been more than 7 days since the last backup, the workout-complete screen shows a reminder.
+- The app also asks the browser for "persistent storage," so the phone doesn't auto-clear it.
+
+If the database is connected, restored data also uploads to Supabase.
 
 ## Looking at your data in Supabase
 
