@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lift">
+<meta name="theme-color" content="#0f1115">
+<title>Lift</title>
+<style>
+
+  :root {
+    --bg: #0f1115;
+    --card: #1a1d24;
+    --line: #2a2e38;
+    --text: #f2f3f5;
+    --muted: #8b919e;
+    --accent: #3ddc84;
+    --warn: #f5a524;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { display: flex; flex-direction: column; min-height: 100dvh;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
+  header { margin-bottom: 16px; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .flex { width: 44px; height: 44px; color: var(--accent); flex-shrink: 0; }
+  .day { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; }
+  .sub { color: var(--muted); font-size: 15px; margin-top: 2px; }
+  .bar { height: 6px; background: var(--line); border-radius: 3px; margin-top: 12px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); transition: width .25s; }
+  main { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .6px; color: var(--muted); margin-bottom: 10px; }
+  .tag.skipped { color: var(--warn); margin-left: 8px; }
+  .ex + .ex { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 16px; }
+  .ex-name { font-size: 26px; font-weight: 700; line-height: 1.15; }
+  .ex-reps { font-size: 18px; margin-top: 6px; }
+  .ex-note { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .next { color: var(--muted); font-size: 15px; padding: 0 4px; }
+  .next b { color: var(--text); font-weight: 600; }
+  .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  button { font: inherit; border: 0; border-radius: 14px; padding: 18px; font-size: 19px; font-weight: 700; cursor: pointer; }
+  .primary { background: var(--accent); color: #062b15; }
+  .secondary { background: var(--card); color: var(--text); border: 1px solid var(--line); }
+  .secondary:disabled { opacity: .35; }
+  footer { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    margin-top: 18px; font-size: 14px; color: var(--muted); }
+  .link { background: none; padding: 6px 0; font-size: 14px; font-weight: 500; color: var(--muted); }
+  .link:disabled { opacity: .35; }
+  select { font: inherit; font-size: 14px; background: var(--card); color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; }
+  .done { text-align: center; padding: 40px 20px; }
+  .done .big { font-size: 64px; }
+  .done h2 { font-size: 28px; margin: 12px 0 6px; }
+  .done p { color: var(--muted); margin: 0; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 12px; }
+  .tile .num { font-size: 28px; font-weight: 800; }
+  .tile .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .sec { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 6px 4px -4px; }
+  .rows { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px 14px; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 0; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row .l { font-size: 15px; }
+  .row .l small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .row .r { font-size: 15px; font-weight: 700; white-space: nowrap; text-align: right; }
+  .row .r small { display: block; font-size: 12px; font-weight: 500; color: var(--muted); }
+  .up { color: var(--accent); } .down { color: #ff6b6b; }
+  .empty { color: var(--muted); text-align: center; padding: 24px 10px; }
+  .last { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .last b { color: var(--text); font-weight: 600; }
+  .sets { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .set { display: grid; grid-template-columns: 52px 1fr 18px 1fr; align-items: center; gap: 8px; }
+  .set-label { font-size: 14px; color: var(--muted); font-weight: 600; }
+  .set .x { text-align: center; color: var(--muted); }
+  .field { position: relative; }
+  .field input { width: 100%; font: inherit; font-size: 20px; font-weight: 600; color: var(--text);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 40px 12px 12px; }
+  .field input:focus { outline: none; border-color: var(--accent); }
+  .field input::placeholder { color: #4b505c; }
+  .field span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 13px; color: var(--muted); pointer-events: none; }
+  footer { flex-wrap: wrap; }
+  .syncline { width: 100%; text-align: center; font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .syncline .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: var(--muted); vertical-align: 1px; }
+  .syncline.ok .dot { background: var(--accent); }
+  .syncline.wait .dot { background: var(--warn); }
+  .syncline.err .dot { background: #ff6b6b; }
+  .login p { color: var(--muted); font-size: 15px; line-height: 1.45; margin: 6px 0 16px; }
+  .login input, .bw input { width: 100%; font: inherit; font-size: 18px; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .login input:focus, .bw input:focus { outline: none; border-color: var(--accent); }
+  .msg { font-size: 14px; color: var(--muted); margin-top: 10px; min-height: 1em; }
+  .msg.bad { color: #ff6b6b; }
+  .bw { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+  .bw input { margin: 0; }
+  .bw button { padding: 14px 18px; font-size: 16px; }
+  .small-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="day" id="day"></div>
+    <svg class="flex" viewBox="0 0 64 64" aria-hidden="true">
+      <path fill="currentColor" d="M2 35 C7 23 28 19 37 34 C38 30 39.5 26 41 23 L36 23 C33.5 23 32 21.5 32 19.5 C32 17.8 33 16.6 34.3 16.3 C32.8 15.8 32 14.6 32 13.4 C32 12 33 11 34.3 10.8 C33 10.2 32.4 9.2 32.6 8 C33 5.8 35.6 4.6 39 4.6 L46 4.6 C50 4.6 53 7.6 52.6 11.5 L51.6 21.5 L58 46 C60 54 55 59 48 59 L2 59 Z"/>
+      <g fill="none" stroke="var(--bg)" stroke-width="1.6" stroke-linecap="round"><path d="M35.5 19.8 Q41 20.6 45 16.5"/><path d="M37 34 Q40.5 42 39 51"/></g>
+      <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M13 14 l2 4"/><path d="M20 11 v5"/><path d="M7 19 l3 3"/></g>
+    </svg>
+  </div>
+  <div class="sub" id="sub"></div>
+  <div class="bar" id="barwrap"><div id="bar"></div></div>
+</header>
+<main id="main"></main>
+<footer>
+  <button class="link" id="undo">↩ Undo</button>
+  <select id="pick" aria-label="Change workout"></select>
+  <button class="link" id="restart">Restart day</button>
+  <button class="link" id="export">⬇ Export log</button>
+  <div class="syncline" id="sync"></div>
+</footer>
+
+<!-- Database keys live in config.js. Leave them blank to keep everything on this phone only. -->
+<script src="config.js" onerror="window.LIFT_CONFIG = window.LIFT_CONFIG || {}"></script>
+<script>
+// =============================================================================
+// WORKOUT PLAN (built-in default). If you save a plan to the database
+// (Dashboard → "Save plan to database"), the database copy wins from then on.
+// Each block = one card. Two exercises in a block = superset (alternate them).
+// =============================================================================
+const DEFAULT_PLAN = [
+  { name: "Upper A", when: "Monday", blocks: [
+    [ { n: "Flat barbell bench", r: "6–10", note: "Stop 1 rep shy of failure · rest 2–3 min" } ],
+    [ { n: "Chest-supported row", r: "8–12", note: "Neutral grip · to failure · rest 2 min" } ],
+    [ { n: "Neutral-grip lat pulldown", r: "10–12", note: "To failure · rest 2 min" } ],
+    [ { n: "Cable flyes", r: "12–15", note: "To failure · rest 90 sec" } ],
+    [ { n: "Lateral raises", r: "12–15", note: "To failure · rest 90 sec" } ],
+    [ { n: "Hammer curls", r: "10–12", note: "To failure" },
+      { n: "Rope pushdowns", r: "10–12", note: "To failure" } ],
+  ]},
+  { name: "Lower A", when: "Tuesday", blocks: [
+    [ { n: "Back squat", r: "6–10", note: "Stop 1 rep shy · rest 2–3 min" } ],
+    [ { n: "Romanian deadlift", r: "8–10", note: "Stop 1 rep shy · rest 2–3 min" } ],
+    [ { n: "Leg press", r: "10–15", note: "To failure · rest 2 min" } ],
+    [ { n: "Lying leg curl", r: "10–12", note: "To failure · rest 90 sec" } ],
+    [ { n: "Standing calf raise", r: "12–15", note: "To failure · rest 60–90 sec" } ],
+    [ { n: "Hanging knee raise", r: "12–15", note: "To failure · rest 60–90 sec" } ],
+  ]},
+  { name: "Upper B", when: "Thursday", blocks: [
+    [ { n: "Incline barbell bench", r: "6–10", note: "Stop 1 rep shy of failure · rest 2–3 min" } ],
+    [ { n: "Neutral-grip pull-ups", r: "6–10", note: "To failure · rest 2 min" } ],
+    [ { n: "Flat DB press", r: "8–12", note: "To failure · rest 2 min" } ],
+    [ { n: "One-arm DB row", r: "10–12 each", note: "To failure · rest 90 sec" } ],
+    [ { n: "Cable flyes", r: "12–15", note: "To failure · rest 90 sec" } ],
+    [ { n: "Military press", r: "6–10", note: "Stop 1 rep shy of failure · rest 2 min" } ],
+    [ { n: "Lateral raises", r: "12–15", note: "To failure · rest 60–90 sec" } ],
+    [ { n: "Face pulls", r: "15", note: "To failure · rest 60–90 sec" } ],
+    [ { n: "Rope hammer curls", r: "10–12", note: "To failure" },
+      { n: "Overhead cable triceps ext.", r: "10–12", note: "To failure" } ],
+  ]},
+  { name: "Lower B", when: "Friday", blocks: [
+    [ { n: "Trap-bar deadlift", r: "6–10", note: "Stop 1 rep shy · rest 2–3 min" } ],
+    [ { n: "Bulgarian split squat", r: "8–10 each", note: "Rest 2 min" } ],
+    [ { n: "Hip thrust", r: "8–12", note: "To failure · rest 2 min" } ],
+    [ { n: "Seated leg curl", r: "10–12", note: "To failure · rest 90 sec" } ],
+    [ { n: "Leg extension", r: "12–15", note: "To failure · rest 90 sec" } ],
+    [ { n: "Seated calf raise", r: "12–15", note: "To failure · rest 60–90 sec" } ],
+  ]},
+];
+const SETS = 2;
+
+const KEY = "lift-state-v2";        // where you are in today's workout
+const PLAN_KEY = "lift-plan-v1";    // cached copy of the database plan
+
+// ---------------------------------------------------------------- helpers ---
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const localDate = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+const prettyDate = iso => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+const shortDate = iso => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
+const lsGet = (k, fallback) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? fallback; } catch (e) { return fallback; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+function validPlan(p) {
+  return Array.isArray(p) && p.length > 0 && p.every(d =>
+    d && typeof d.name === "string" && typeof d.when === "string" && Array.isArray(d.blocks) && d.blocks.length > 0 &&
+    d.blocks.every(b => Array.isArray(b) && b.length > 0 && b.every(e => e && typeof e.n === "string" && typeof e.r === "string")));
+}
+let PLAN = validPlan(lsGet(PLAN_KEY)) ? lsGet(PLAN_KEY) : DEFAULT_PLAN;
+
+// =============================================================================
+// DATA LAYER
+// Every table is cached on the phone (so the app works offline) and, when the
+// database is configured, changes are queued and pushed to Supabase.
+//   sets        id, session_id, logged_at, date, workout, exercise, set_number, weight_lb, reps
+//   bodyweight  id, logged_at, date, weight_lb
+// =============================================================================
+const CFG = window.LIFT_CONFIG || {};
+const CONFIGURED = !!(CFG.supabaseUrl && CFG.supabaseAnonKey);
+let sb = null;          // Supabase client once loaded
+let user = null;        // signed-in user
+let skipLogin = false;  // "continue without syncing" for this visit
+
+function makeTable(name, key, fields, sortFn) {
+  const pk = key + "-pending", dk = key + "-deleted";
+  const clean = r => { const o = {}; fields.forEach(f => { o[f] = r[f] ?? null; }); return o; };
+  return {
+    name,
+    all: () => lsGet(key, []),
+    add(recs) {
+      lsSet(key, lsGet(key, []).concat(recs));
+      if (CONFIGURED) lsSet(pk, lsGet(pk, []).concat(recs));
+      Sync.push();
+    },
+    remove(ids) {
+      const drop = new Set(ids);
+      lsSet(key, lsGet(key, []).filter(r => !drop.has(r.id)));
+      if (CONFIGURED) {
+        const pend = lsGet(pk, []);
+        const neverSent = new Set(pend.filter(r => drop.has(r.id)).map(r => r.id));
+        lsSet(pk, pend.filter(r => !drop.has(r.id)));
+        lsSet(dk, lsGet(dk, []).concat(ids.filter(i => !neverSent.has(i))));
+      }
+      Sync.push();
+    },
+    pending: () => lsGet(pk, []).length + lsGet(dk, []).length,
+    queueAllLocal() {                       // one-time import of data logged before the DB existed
+      const have = new Set(lsGet(pk, []).map(r => r.id));
+      lsSet(pk, lsGet(pk, []).concat(lsGet(key, []).filter(r => !have.has(r.id))));
+    },
+    async flush() {
+      const adds = lsGet(pk, []), dels = lsGet(dk, []);
+      for (let i = 0; i < adds.length; i += 500) {
+        const chunk = adds.slice(i, i + 500).map(clean);
+        const { error } = await sb.from(name).upsert(chunk, { onConflict: "id" });
+        if (error) throw error;
+        const sent = new Set(chunk.map(r => r.id));
+        lsSet(pk, lsGet(pk, []).filter(r => !sent.has(r.id)));
+      }
+      if (dels.length) {
+        const { error } = await sb.from(name).delete().in("id", dels);
+        if (error) throw error;
+        const gone = new Set(dels);
+        lsSet(dk, lsGet(dk, []).filter(i => !gone.has(i)));
+      }
+    },
+    async pull() {                          // database is the source of truth; keep anything not sent yet
+      const rows = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await sb.from(name).select(fields.join(",")).order("logged_at", { ascending: true }).range(from, from + 999);
+        if (error) throw error;
+        rows.push(...data);
+        if (data.length < 1000) break;
+      }
+      const pend = lsGet(pk, []), dels = new Set(lsGet(dk, []));
+      const onServer = new Set(rows.map(r => r.id));
+      const merged = rows.filter(r => !dels.has(r.id)).map(r => {
+        const o = clean(r);
+        if (o.weight_lb != null) o.weight_lb = Number(o.weight_lb);
+        return o;
+      }).concat(pend.filter(r => !onServer.has(r.id)));
+      merged.sort(sortFn);
+      lsSet(key, merged);
+    },
+  };
+}
+const byTime = (a, b) => String(a.logged_at).localeCompare(String(b.logged_at));
+const Sets = makeTable("sets", "lift-log-v1",
+  ["id", "session_id", "logged_at", "date", "workout", "exercise", "set_number", "weight_lb", "reps"],
+  (a, b) => (new Date(a.logged_at) - new Date(b.logged_at)) || (a.set_number - b.set_number));
+const Bodyweight = makeTable("bodyweight", "lift-bw-v1", ["id", "logged_at", "date", "weight_lb"], byTime);
+const TABLES = [Sets, Bodyweight];
+
+const Sync = {
+  state: "local", busy: false, again: false, lastPull: 0,
+  online: () => navigator.onLine !== false,
+  ready() { return !!(sb && user); },
+  async push() {
+    if (!this.ready() || !this.online()) return this.show();
+    if (this.busy) { this.again = true; return; }
+    this.busy = true;
+    try { for (const t of TABLES) await t.flush(); this.state = "ok"; }
+    catch (e) { console.warn("Sync push failed", e); this.state = "err"; }
+    this.busy = false; this.show();
+    if (this.again) { this.again = false; this.push(); }
+  },
+  async full() {                            // push anything waiting, then pull everything down
+    if (!this.ready() || !this.online()) return this.show();
+    await this.push();
+    if (this.state === "err") return;
+    try {
+      for (const t of TABLES) await t.pull();
+      await pullPlan();
+      this.state = "ok"; this.lastPull = Date.now();
+    } catch (e) { console.warn("Sync pull failed", e); this.state = "err"; }
+    this.show();
+    const typing = document.activeElement && document.activeElement.tagName === "INPUT";
+    if (!typing) render();
+  },
+  show() {
+    const el = $("sync"); if (!el) return;
+    const waiting = TABLES.reduce((n, t) => n + t.pending(), 0);
+    let cls = "", txt = "Saved on this phone only";
+    if (CONFIGURED) {
+      if (!user) { cls = waiting ? "wait" : ""; txt = waiting ? `${waiting} waiting · sign in to sync` : "Not signed in · saving on this phone"; }
+      else if (!this.online()) { cls = "wait"; txt = waiting ? `Offline · ${waiting} waiting to sync` : "Offline · will sync later"; }
+      else if (this.state === "err") { cls = "err"; txt = `Sync problem · ${waiting} waiting · will retry`; }
+      else if (waiting) { cls = "wait"; txt = `Syncing ${waiting}…`; }
+      else { cls = "ok"; txt = "Synced"; }
+    }
+    el.className = "syncline " + cls;
+    el.innerHTML = `<span class="dot"></span>${esc(txt)}`;
+  },
+};
+
+// Plan stored in the database (one row per user, table user_plan)
+async function pullPlan() {
+  const { data, error } = await sb.from("user_plan").select("plan").maybeSingle();
+  if (error) throw error;
+  if (data && validPlan(data.plan)) {
+    lsSet(PLAN_KEY, data.plan);
+    setPlan(data.plan);
+  }
+}
+async function savePlanToDb() {
+  const { error } = await sb.from("user_plan").upsert({ plan: PLAN, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (error) throw error;
+  lsSet(PLAN_KEY, PLAN);
+}
+function setPlan(p) {
+  const changed = JSON.stringify(p) !== JSON.stringify(PLAN);
+  PLAN = p;
+  if (!changed || !state) return;
+  const ok = PLAN[state.day] && state.queue.every(i => i < PLAN[state.day].blocks.length);
+  if (!ok) { state = fresh(Math.min(state.day, PLAN.length - 1)); save(); }
+}
+
+// Load Supabase only when keys are set, without blocking the app from opening
+function initDb() {
+  if (!CONFIGURED) return Sync.show();
+  const start = () => {
+    try {
+      sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      });
+    } catch (e) { console.warn("Supabase init failed", e); return Sync.show(); }
+    sb.auth.onAuthStateChange((_evt, session) => {
+      const was = user && user.id;
+      user = session ? session.user : null;
+      if (user && user.id !== was) onSignedIn();
+      if (!user) { Sync.show(); render(); }
+    });
+    sb.auth.getSession().then(({ data }) => {
+      const was = user && user.id;
+      user = data && data.session ? data.session.user : null;
+      if (user && user.id !== was) onSignedIn(); else { Sync.show(); render(); }
+    });
+  };
+  if (window.supabase && window.supabase.createClient) return start();
+  const s = document.createElement("script");
+  s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+  s.onload = start;
+  s.onerror = () => { console.warn("Could not load Supabase (offline?)"); Sync.show(); };
+  document.head.appendChild(s);
+}
+function onSignedIn() {
+  const flag = "lift-imported-" + user.id;
+  if (!lsGet(flag, false)) { TABLES.forEach(t => t.queueAllLocal()); lsSet(flag, true); }
+  render();
+  Sync.full();
+}
+window.addEventListener("online", () => Sync.full());
+window.addEventListener("offline", () => Sync.show());
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && Date.now() - Sync.lastPull > 30000) Sync.full();
+});
+
+// =============================================================================
+// WORKOUT STATE
+// =============================================================================
+let state;
+let view = "workout"; // "workout" | "dashboard"
+function fresh(day) {
+  return { day, session: uid(), queue: PLAN[day].blocks.map((_, i) => i), skipped: [], history: [], draft: {} };
+}
+function load() {
+  const s = lsGet(KEY, null);
+  if (s && PLAN[s.day] && Array.isArray(s.queue) && s.queue.every(i => i < PLAN[s.day].blocks.length)) {
+    s.draft = s.draft || {}; s.session = s.session || uid(); s.history = s.history || []; s.skipped = s.skipped || [];
+    return s;
+  }
+  return fresh(0);
+}
+function save() { lsSet(KEY, state); }
+function snapshot(extra) {
+  state.history.push({ queue: [...state.queue], skipped: [...state.skipped], draft: { ...state.draft }, ...extra });
+  if (state.history.length > 30) state.history.shift();
+}
+const blockTitle = b => b.map(e => e.n).join(" + ");
+const dkey = (blockIdx, exIdx, set) => `${blockIdx}|${exIdx}|${set}`;
+
+// Sets from the last time this exercise was done in THIS workout (e.g. Upper A), not counting today
+function lastTime(exName, workout) {
+  const log = Sets.all().filter(r => r.exercise === exName && r.workout === workout && r.session_id !== state.session);
+  if (!log.length) return null;
+  const lastSession = log[log.length - 1].session_id;
+  const sets = log.filter(r => r.session_id === lastSession).sort((a, b) => a.set_number - b.set_number);
+  return { date: sets[0].date, sets };
+}
+
+// =============================================================================
+// SCREENS
+// =============================================================================
+function renderLogin() {
+  $("day").textContent = "Sign in";
+  $("sub").textContent = "So your lifts sync to the database";
+  $("barwrap").style.display = "none";
+  $("undo").disabled = true;
+  $("main").innerHTML = `
+    <div class="card login">
+      <p>Enter your email. You'll get a 6-digit code (and a link) — type the code here.</p>
+      <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(lsGet("lift-email", ""))}">
+      <button class="primary" id="send" style="width:100%">Send code</button>
+      <div id="codebox" style="display:none;margin-top:14px">
+        <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="6-digit code">
+        <button class="primary" id="verify" style="width:100%">Sign in</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div class="small-actions"><button class="link" id="skipLogin">Continue without syncing</button></div>`;
+  const msg = (t, bad) => { const m = $("msg"); if (!m) return; m.textContent = t; m.className = "msg" + (bad ? " bad" : ""); };
+  $("send").onclick = async () => {
+    const email = $("email").value.trim();
+    if (!email) return msg("Enter your email first.", true);
+    lsSet("lift-email", email);
+    msg("Sending…");
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+    if (error) return msg(error.message, true);
+    $("codebox").style.display = "";
+    msg("Check your email for the code.");
+    $("code").focus();
+  };
+  $("verify").onclick = async () => {
+    const email = $("email").value.trim(), token = $("code").value.trim();
+    if (!token) return msg("Enter the code from the email.", true);
+    msg("Checking…");
+    const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+    if (error) return msg(error.message, true);
+    msg("");
+  };
+  $("skipLogin").onclick = () => { skipLogin = true; render(); };
+}
+
+const e1rm = r => (r.weight_lb || 0) * (1 + (r.reps || 0) / 30); // Epley estimate, for ranking sets
+
+function renderDashboard() {
+  const log = Sets.all();
+  const bw = Bodyweight.all();
+  $("day").textContent = "Dashboard";
+  $("sub").textContent = "Your lifting history";
+  $("barwrap").style.display = "none";
+  $("undo").disabled = true;
+
+  // Sessions (in order)
+  const sessions = [];
+  log.forEach(r => {
+    let s = sessions.find(x => x.id === r.session_id);
+    if (!s) sessions.push(s = { id: r.session_id, date: r.date, workout: r.workout, sets: 0, exercises: new Set() });
+    s.sets++; s.exercises.add(r.exercise);
+  });
+
+  // This week = since Monday
+  const now = new Date(); const monday = new Date(now);
+  monday.setHours(0, 0, 0, 0); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const thisWeek = sessions.filter(s => new Date(s.date + "T00:00:00") >= monday).length;
+
+  // Per-exercise: best set ever + trend vs previous session
+  const order = [];
+  PLAN.forEach(p => p.blocks.flat().forEach(e => { if (!order.includes(e.n)) order.push(e.n); }));
+  log.forEach(r => { if (!order.includes(r.exercise)) order.push(r.exercise); });
+  const bests = order.map(name => {
+    const rows = log.filter(r => r.exercise === name && r.weight_lb != null && r.reps != null);
+    if (!rows.length) return null;
+    const best = rows.reduce((a, b) => e1rm(b) > e1rm(a) ? b : a);
+    const sids = [...new Set(rows.map(r => r.session_id))];
+    const topOf = sid => Math.max(...rows.filter(r => r.session_id === sid).map(e1rm));
+    let trend = "";
+    if (sids.length > 1) {
+      const a = topOf(sids[sids.length - 1]), b = topOf(sids[sids.length - 2]);
+      trend = a > b ? '<span class="up">▲</span>' : a < b ? '<span class="down">▼</span>' : '<span>＝</span>';
+    }
+    return { name, best, trend, last: rows[rows.length - 1] };
+  }).filter(Boolean);
+
+  // Bodyweight: latest, change vs ~1 week ago and vs first entry
+  const bwSorted = [...bw].sort((a, b) => a.date.localeCompare(b.date) || byTime(a, b));
+  const latest = bwSorted[bwSorted.length - 1];
+  const weekAgoIso = (() => { const d = new Date(); d.setDate(d.getDate() - 7); return d.toISOString().slice(0, 10); })();
+  const weekRef = [...bwSorted].reverse().find(r => r.date <= weekAgoIso);
+  const delta = (a, b) => { const d = Math.round((a - b) * 10) / 10; return `${d > 0 ? "+" : ""}${d}`; };
+  const todayEntry = bw.find(r => r.date === localDate());
+
+  $("main").innerHTML = `
+    <div class="tiles">
+      <div class="tile"><div class="num">${sessions.length}</div><div class="lbl">Workouts</div></div>
+      <div class="tile"><div class="num">${thisWeek}<span style="font-size:16px;color:var(--muted)">/4</span></div><div class="lbl">This week</div></div>
+      <div class="tile"><div class="num">${latest ? latest.weight_lb : "–"}</div><div class="lbl">Bodyweight (lb)</div></div>
+    </div>
+
+    <div class="sec">Bodyweight</div>
+    <div class="card">
+      <div class="bw">
+        <input id="bwInput" type="number" inputmode="decimal" step="0.1" min="0" placeholder="${todayEntry ? todayEntry.weight_lb : "Today's weight (lb)"}">
+        <button class="primary" id="bwSave">${todayEntry ? "Update" : "Log"}</button>
+      </div>
+      ${latest ? `<div class="last" style="margin-top:12px">
+        Latest <b>${latest.weight_lb} lb</b> (${esc(shortDate(latest.date))})
+        ${weekRef ? ` · 7 days: <b>${delta(latest.weight_lb, weekRef.weight_lb)}</b>` : ""}
+        ${bwSorted.length > 1 ? ` · since ${esc(shortDate(bwSorted[0].date))}: <b>${delta(latest.weight_lb, bwSorted[0].weight_lb)}</b>` : ""}
+      </div>` : `<div class="last" style="margin-top:12px">Log your morning weight to track it next to your lifts.</div>`}
+    </div>
+
+    ${log.length ? `
+    <div class="sec">Best sets</div>
+    <div class="rows">${bests.map(b => `
+      <div class="row">
+        <div class="l">${esc(b.name)}<small>Last: ${b.last.weight_lb} × ${b.last.reps} · ${esc(shortDate(b.last.date))}</small></div>
+        <div class="r">${b.trend} ${b.best.weight_lb} × ${b.best.reps}<small>${esc(shortDate(b.best.date))}</small></div>
+      </div>`).join("")}
+    </div>
+
+    <div class="sec">Recent workouts</div>
+    <div class="rows">${sessions.slice(-6).reverse().map(s => `
+      <div class="row">
+        <div class="l">${esc(s.workout)}<small>${esc(prettyDate(s.date))}</small></div>
+        <div class="r">${s.sets} sets<small>${s.exercises.size} exercise${s.exercises.size === 1 ? "" : "s"}</small></div>
+      </div>`).join("")}
+    </div>` : `<div class="card empty">No sets logged yet.<br>Fill in weight × reps and hit Finish.</div>`}
+
+    <div class="actions"><button class="secondary" id="back">← Back</button></div>
+    <div class="small-actions">
+      ${user ? `<button class="link" id="planSave">Save plan to database</button>
+                <button class="link" id="signOut">Sign out (${esc(user.email || "")})</button>`
+             : CONFIGURED && sb ? `<button class="link" id="signIn">Sign in to sync</button>` : ""}
+    </div>
+    <div class="msg" id="dashMsg" style="text-align:center"></div>`;
+
+  $("back").onclick = () => { view = "workout"; render(); window.scrollTo(0, 0); };
+  $("bwSave").onclick = () => {
+    const v = parseFloat($("bwInput").value);
+    if (!(v > 0)) return;
+    if (todayEntry) Bodyweight.remove([todayEntry.id]);   // one entry per day
+    Bodyweight.add([{ id: uid(), logged_at: new Date().toISOString(), date: localDate(), weight_lb: v }]);
+    render();
+  };
+  if ($("signOut")) $("signOut").onclick = async () => { await sb.auth.signOut(); user = null; view = "workout"; render(); Sync.show(); };
+  if ($("signIn")) $("signIn").onclick = () => { skipLogin = false; render(); };
+  if ($("planSave")) $("planSave").onclick = async () => {
+    $("dashMsg").textContent = "Saving…";
+    try { await savePlanToDb(); $("dashMsg").textContent = "Plan saved. Edit it in Supabase → Table Editor → user_plan."; }
+    catch (e) { $("dashMsg").textContent = "Couldn't save plan: " + (e.message || e); }
+  };
+}
+
+function render() {
+  Sync.show();
+  if (CONFIGURED && sb && !user && !skipLogin) return renderLogin();
+  if (view === "dashboard") return renderDashboard();
+  $("barwrap").style.display = "";
+  const w = PLAN[state.day];
+
+  const total = w.blocks.length;
+  const doneCount = total - state.queue.length;
+
+  $("day").textContent = w.name;
+  $("bar").style.width = (doneCount / total * 100) + "%";
+  $("undo").disabled = state.history.length === 0;
+
+  $("pick").innerHTML = PLAN.map((p, i) =>
+    `<option value="${i}" ${i === state.day ? "selected" : ""}>${esc(p.name)} (${esc(p.when.slice(0, 3))})</option>`).join("");
+
+  if (state.queue.length === 0) {
+    const next = PLAN[(state.day + 1) % PLAN.length];
+    const logged = Sets.all().filter(r => r.session_id === state.session).length;
+    $("sub").textContent = `All ${total} done`;
+    $("main").innerHTML = `
+      <div class="card done">
+        <div class="big">💪</div>
+        <h2>${esc(w.name)} complete</h2>
+        <p>${logged} sets logged</p>
+        <p style="margin-top:6px">Next up: <b>${esc(next.name)}</b> (${esc(next.when)})</p>
+      </div>
+      <div class="actions">
+        <button class="primary" id="nextDay">Start ${esc(next.name)}</button>
+        <button class="secondary" id="dash">Dashboard</button>
+      </div>`;
+    $("dash").onclick = () => { view = "dashboard"; render(); window.scrollTo(0, 0); };
+    $("nextDay").onclick = () => { state = fresh((state.day + 1) % PLAN.length); save(); render(); };
+    return;
+  }
+
+  const idx = state.queue[0];
+  const block = w.blocks[idx];
+  const isPair = block.length > 1;
+  const wasSkipped = state.skipped.includes(idx);
+  $("sub").textContent = `${doneCount + 1} of ${total} · ${w.when}`;
+
+  const upNext = state.queue.length > 1 ? blockTitle(w.blocks[state.queue[1]]) : null;
+
+  $("main").innerHTML = `
+    <div class="card">
+      <span class="tag">${isPair ? "Superset · alternate" : "Straight sets"}</span>${wasSkipped ? '<span class="tag skipped">Skipped earlier</span>' : ""}
+      ${block.map((e, ei) => {
+        const last = lastTime(e.n, w.name);
+        const rows = Array.from({ length: SETS }, (_, s) => {
+          const d = state.draft[dkey(idx, ei, s + 1)] || {};
+          const prev = last && last.sets.find(r => r.set_number === s + 1);
+          return `
+            <div class="set">
+              <div class="set-label">Set ${s + 1}</div>
+              <div class="field"><input type="number" inputmode="decimal" step="any" min="0"
+                data-k="${dkey(idx, ei, s + 1)}" data-f="w" value="${esc(d.w ?? "")}"
+                placeholder="${prev && prev.weight_lb != null ? prev.weight_lb : "0"}"><span>lb</span></div>
+              <div class="x">×</div>
+              <div class="field"><input type="number" inputmode="numeric" step="1" min="0"
+                data-k="${dkey(idx, ei, s + 1)}" data-f="r" value="${esc(d.r ?? "")}"
+                placeholder="${prev && prev.reps != null ? prev.reps : "0"}"><span>reps</span></div>
+            </div>`;
+        }).join("");
+        return `
+        <div class="ex">
+          <div class="ex-name">${esc(e.n)}</div>
+          <div class="ex-reps">${SETS} sets × ${esc(e.r)} reps</div>
+          ${e.note ? `<div class="ex-note">${esc(e.note)}</div>` : ""}
+          <div class="last">${last
+            ? `Last ${esc(w.name)} (${esc(prettyDate(last.date))}): <b>${last.sets.map(r => `${r.weight_lb ?? "–"} lb × ${r.reps ?? "–"}`).join(" · ")}</b>`
+            : `Last ${esc(w.name)}: <b>nothing logged yet</b>`}</div>
+          <div class="sets">${rows}</div>
+        </div>`;
+      }).join("")}
+    </div>
+    ${upNext ? `<div class="next">Up next: <b>${esc(upNext)}</b></div>` : `<div class="next">Last one 🔥</div>`}
+    <div class="actions">
+      <button class="primary" id="finish">Finish ✓</button>
+      <button class="secondary" id="skip" ${state.queue.length < 2 ? "disabled" : ""}>Machine busy, come back later →</button>
+    </div>`;
+
+  // Keep typed numbers in a draft so they survive skipping, closing the app, etc.
+  document.querySelectorAll("input[data-k]").forEach(inp => {
+    inp.oninput = () => {
+      const k = inp.dataset.k;
+      state.draft[k] = { ...(state.draft[k] || {}), [inp.dataset.f]: inp.value };
+      save();
+    };
+  });
+
+  $("finish").onclick = () => {
+    const now = new Date().toISOString();
+    const records = [];
+    block.forEach((e, ei) => {
+      for (let s = 1; s <= SETS; s++) {
+        const d = state.draft[dkey(idx, ei, s)] || {};
+        const wt = d.w === undefined || d.w === "" ? null : Number(d.w);
+        const rp = d.r === undefined || d.r === "" ? null : Math.round(Number(d.r));
+        if (wt === null && rp === null) continue; // nothing entered for this set
+        records.push({
+          id: uid(), session_id: state.session, logged_at: now, date: localDate(),
+          workout: w.name, exercise: e.n, set_number: s, weight_lb: wt, reps: rp,
+        });
+      }
+    });
+    snapshot({ logged: records.map(r => r.id) });
+    block.forEach((_, ei) => { for (let s = 1; s <= SETS; s++) delete state.draft[dkey(idx, ei, s)]; });
+    state.queue.shift();
+    save();
+    if (records.length) Sets.add(records);
+    render(); window.scrollTo(0, 0);
+  };
+  $("skip").onclick = () => {
+    if (state.queue.length < 2) return;
+    snapshot();
+    const b = state.queue.shift();
+    state.queue.push(b);
+    if (!state.skipped.includes(b)) state.skipped.push(b);
+    save(); render(); window.scrollTo(0, 0);
+  };
+}
+
+// ------------------------------------------------------------- footer -------
+$("undo").onclick = () => {
+  const prev = state.history.pop();
+  if (!prev) return;
+  state.queue = prev.queue; state.skipped = prev.skipped; state.draft = prev.draft || {};
+  save();
+  if (prev.logged && prev.logged.length) Sets.remove(prev.logged);
+  render();
+};
+$("restart").onclick = () => {
+  if (!confirmRestart()) return;
+  state = fresh(state.day); save(); render();
+};
+$("pick").onchange = e => { view = "workout"; state = fresh(+e.target.value); save(); render(); };
+
+// Two-tap restart instead of a browser confirm() popup
+let restartArmed = false;
+function confirmRestart() {
+  if (restartArmed) { restartArmed = false; $("restart").textContent = "Restart day"; return true; }
+  restartArmed = true; $("restart").textContent = "Tap again to restart";
+  setTimeout(() => { restartArmed = false; $("restart").textContent = "Restart day"; }, 3000);
+  return false;
+}
+
+$("export").onclick = () => {
+  const log = Sets.all();
+  const cols = ["id", "session_id", "logged_at", "date", "workout", "exercise", "set_number", "weight_lb", "reps"];
+  const q = v => v == null ? "" : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+  const csv = [cols.join(",")].concat(log.map(r => cols.map(c => q(r[c])).join(","))).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = `lift-log-${localDate()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+
+// ------------------------------------------------------------- start --------
+state = load();
+render();
+initDb();
+</script>
+</body>
+</html>
