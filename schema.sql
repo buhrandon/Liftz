@@ -37,13 +37,13 @@ create table if not exists public.bodyweight (
 create index if not exists bodyweight_user_date_idx on public.bodyweight (user_id, date);
 
 -- -----------------------------------------------------------------------------
--- 3. Workout plan — one row per user, the whole plan as JSON
---    Created from the app (Dashboard → "Save plan to database"),
---    then edit it in Table Editor → user_plan → plan.
+-- 3. Routines — one row per user, stored as JSON:
+--    { v: 3, selected: routine id, custom: [their routines], exercises: [their own exercises] }
+--    Managed in the app (Dashboard → Routine / + Create routine); saved here automatically.
 -- -----------------------------------------------------------------------------
 create table if not exists public.user_plan (
   user_id     uuid primary key default auth.uid() references auth.users (id) on delete cascade,
-  plan        jsonb not null check (jsonb_typeof(plan) = 'array'),
+  plan        jsonb not null check (jsonb_typeof(plan) in ('object', 'array')),
   updated_at  timestamptz not null default now()
 );
 
