@@ -906,8 +906,6 @@ function renderDashboard() {
       <div class="tile"><div class="num">${latest ? latest.weight_lb : "–"}</div><div class="lbl">Bodyweight (lb)</div></div>
     </div>
 
-    ${routineSectionHtml()}
-
     <div class="sec">Bodyweight</div>
     <div class="card">
       <div class="bw">
@@ -937,6 +935,8 @@ function renderDashboard() {
         <div class="r">${s.sets} sets<small>${s.exercises.size} exercise${s.exercises.size === 1 ? "" : "s"}</small></div>
       </div>`).join("")}
     </div>` : `<div class="card empty">No sets logged yet.<br>Fill in weight × reps and hit Finish.</div>`}
+
+    ${routineSectionHtml()}
 
     <div class="actions"><button class="secondary" id="back">← Back</button></div>
     <div class="small-actions">
@@ -1532,6 +1532,7 @@ function updatePick() {
 }
 function render() {
   Sync.show();
+  $("pick").hidden = true;   // the workout picker only shows on the workout screen (below)
   updatePick();
   const editing = view === "routine" || view === "workoutEdit" || view === "exPick";
   document.querySelector("footer").style.display = editing ? "none" : "";
@@ -1542,6 +1543,7 @@ function render() {
   if (view === "dashboard") return renderDashboard();
   if (view === "exercise" && exView) return renderExercise();
   $("barwrap").style.display = "";
+  $("pick").hidden = false;
   const w = PLAN[state.day];
 
   const total = w.blocks.length;
