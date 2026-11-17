@@ -23,6 +23,7 @@
     --accent: #3ddc84;
     --warn: #f5a524;
   }
+  [hidden] { display: none !important; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -111,6 +112,10 @@
   .bw { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
   .bw input { margin: 0; }
   .bw button { padding: 14px 18px; font-size: 16px; }
+  .install-mini-wrap { display: flex; justify-content: flex-end; margin-top: 12px; }
+  .install-mini { display: inline-flex; align-items: center; gap: 6px; background: var(--card); color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px 4px 4px; font-size: 13px; font-weight: 600; }
+  .install-mini img { width: 26px; height: 26px; border-radius: 7px; }
   .install { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line);
     border-radius: 14px; padding: 12px 14px; margin-top: 14px; }
   .install img { width: 40px; height: 40px; border-radius: 10px; }
@@ -240,7 +245,10 @@
   <img src="icon-192.png" alt="">
   <div class="t"><b>Install Lift</b><span>Open it from your home screen like an app</span></div>
   <button class="primary go" id="installGo">Install</button>
-  <button class="x" id="installX" aria-label="Dismiss">×</button>
+  <button class="x" id="installX" aria-label="Collapse">×</button>
+</div>
+<div class="install-mini-wrap" id="installMiniWrap" hidden>
+  <button class="install-mini" id="installMini" aria-label="Show install option"><img src="icon-192.png" alt=""><span>Install</span></button>
 </div>
 <div id="sheetHost"></div>
 <footer>
@@ -1567,9 +1575,11 @@ const Install = {
   standalone: () => (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true,
   ios: () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
   available() { return !this.standalone() && (!!this.prompt || this.ios()); },
+  // × collapses the banner to a small icon button; tapping the icon brings it back
   refresh() {
-    const show = this.available() && !lsGet(this.KEY, false);
-    $("install").hidden = !show;
+    const avail = this.available(), collapsed = lsGet(this.KEY, false);
+    $("install").hidden = !avail || collapsed;
+    $("installMiniWrap").hidden = !avail || !collapsed;
   },
   async go() {
     if (this.prompt) {
@@ -1607,6 +1617,7 @@ window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); Instal
 window.addEventListener("appinstalled", () => { Install.prompt = null; lsSet(Install.KEY, true); Install.refresh(); });
 $("installGo").onclick = () => Install.go();
 $("installX").onclick = () => { lsSet(Install.KEY, true); Install.refresh(); };
+$("installMini").onclick = () => { lsSet(Install.KEY, false); Install.refresh(); };
 
 // Offline support + makes Android treat it as an installable app
 if ("serviceWorker" in navigator && location.protocol === "https:") {
