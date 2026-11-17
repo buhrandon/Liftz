@@ -113,9 +113,9 @@
   .bw input { margin: 0; }
   .bw button { padding: 14px 18px; font-size: 16px; }
   .install-mini-wrap { display: flex; justify-content: flex-end; margin-top: 12px; }
-  .install-mini { display: inline-flex; align-items: center; gap: 6px; background: var(--card); color: var(--muted);
-    border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px 4px 4px; font-size: 13px; font-weight: 600; }
-  .install-mini img { width: 26px; height: 26px; border-radius: 7px; }
+  .install-mini { width: 44px; height: 44px; padding: 0; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--line); background: var(--card); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+  .install-mini img { display: block; width: 100%; height: 100%; }
   .install { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line);
     border-radius: 14px; padding: 12px 14px; margin-top: 14px; }
   .install img { width: 40px; height: 40px; border-radius: 10px; }
@@ -248,7 +248,7 @@
   <button class="x" id="installX" aria-label="Collapse">×</button>
 </div>
 <div class="install-mini-wrap" id="installMiniWrap" hidden>
-  <button class="install-mini" id="installMini" aria-label="Show install option"><img src="icon-192.png" alt=""><span>Install</span></button>
+  <button class="install-mini" id="installMini" aria-label="Install Lift" title="Install Lift"><img src="icon-192.png" alt=""></button>
 </div>
 <div id="sheetHost"></div>
 <footer>
@@ -1580,13 +1580,13 @@ if (navigator.storage && navigator.storage.persist) navigator.storage.persist().
 // so the button shows the Share → "Add to Home Screen" steps instead.
 const Install = {
   prompt: null,
-  KEY: "lift-install-dismissed",
+  KEY: "lift-install-expanded",
   standalone: () => (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true,
   ios: () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
   available() { return !this.standalone() && (!!this.prompt || this.ios()); },
-  // × collapses the banner to a small icon button; tapping the icon brings it back
+  // Starts as a small square icon. Tap it to open the full banner; × collapses it again.
   refresh() {
-    const avail = this.available(), collapsed = lsGet(this.KEY, false);
+    const avail = this.available(), collapsed = !lsGet(this.KEY, false);
     $("install").hidden = !avail || collapsed;
     $("installMiniWrap").hidden = !avail || !collapsed;
   },
@@ -1595,7 +1595,7 @@ const Install = {
       this.prompt.prompt();
       const choice = await this.prompt.userChoice;
       this.prompt = null;
-      if (choice && choice.outcome === "accepted") lsSet(this.KEY, true);
+      if (choice && choice.outcome === "accepted") lsSet(this.KEY, false);
       this.refresh();
       return;
     }
@@ -1623,10 +1623,10 @@ const Install = {
   },
 };
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); Install.prompt = e; Install.refresh(); });
-window.addEventListener("appinstalled", () => { Install.prompt = null; lsSet(Install.KEY, true); Install.refresh(); });
+window.addEventListener("appinstalled", () => { Install.prompt = null; lsSet(Install.KEY, false); Install.refresh(); });
 $("installGo").onclick = () => Install.go();
-$("installX").onclick = () => { lsSet(Install.KEY, true); Install.refresh(); };
-$("installMini").onclick = () => { lsSet(Install.KEY, false); Install.refresh(); };
+$("installX").onclick = () => { lsSet(Install.KEY, false); Install.refresh(); };
+$("installMini").onclick = () => { lsSet(Install.KEY, true); Install.refresh(); };
 
 // Offline support + makes Android treat it as an installable app
 if ("serviceWorker" in navigator && location.protocol === "https:") {
