@@ -128,6 +128,61 @@
     padding: 12px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px; }
   .nudge span { flex: 1; }
   .nudge button { padding: 10px 14px; font-size: 15px; }
+  .tgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tpl { text-align: left; background: var(--card); color: var(--text); border: 1px solid var(--line);
+    border-radius: 14px; padding: 14px 12px; font-size: 15px; font-weight: 700; }
+  .tpl span { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 4px; line-height: 1.3; }
+  .tpl.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .hint { font-size: 13px; color: var(--muted); padding: 0 4px; line-height: 1.4; }
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .daychip { background: var(--bg); color: var(--muted); border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 0 8px; font-size: 18px; font-weight: 800; }
+  .daychip small { display: block; font-size: 10px; font-weight: 600; margin-top: 2px; }
+  .daychip.on { background: var(--accent); color: #062b15; border-color: var(--accent); }
+  .stepper-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 15px; }
+  .stepper { display: flex; align-items: center; gap: 14px; }
+  .stepper button { width: 44px; height: 44px; padding: 0; font-size: 22px; background: var(--bg); color: var(--text); border: 1px solid var(--line); }
+  .stepper b { font-size: 22px; min-width: 20px; text-align: center; }
+  .wrow { padding: 6px 0; }
+  .wopen { flex: 1; background: none; color: var(--text); text-align: left; padding: 6px 0; font-size: 15px; font-weight: 400; }
+  .wopen .l small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .mini { display: flex; gap: 6px; }
+  .mini button { width: 38px; height: 38px; padding: 0; font-size: 16px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; }
+  .mini button:disabled { opacity: .3; }
+  .addbtn { width: 100%; padding: 14px; font-size: 16px; }
+  .eblock { display: flex; flex-direction: column; gap: 10px; }
+  .ehead { display: flex; justify-content: space-between; align-items: center; }
+  .eitem { display: flex; flex-direction: column; gap: 6px; }
+  .eitem + .eitem { border-top: 1px solid var(--line); padding-top: 12px; }
+  .egrid { display: grid; grid-template-columns: 1fr 90px; gap: 10px; }
+  .lbl { font-size: 12px; color: var(--muted); font-weight: 600; display: block; margin-bottom: 4px; }
+  .tin { width: 100%; font: inherit; font-size: 16px; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 10px; padding: 11px 12px; }
+  .tin.big { font-size: 18px; font-weight: 700; }
+  .tin:focus { outline: none; border-color: var(--accent); }
+  .rlist { display: flex; flex-direction: column; gap: 10px; }
+  .rcard { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .rcard.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .rcard.ask { border-color: var(--warn); }
+  .rpick { display: block; width: 100%; text-align: left; background: none; color: var(--text); padding: 14px 16px 6px; font-weight: 400; border-radius: 0; }
+  .rtop { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .rname { font-size: 18px; font-weight: 800; }
+  .rmeta { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .rcheck { background: var(--accent); color: #062b15; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .rtag { border: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .rconfirm { margin: 6px 16px 4px; padding: 12px; background: rgba(245,165,36,.1); border-radius: 12px; font-size: 14px; }
+  .rconfirm .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .rconfirm button { padding: 12px; font-size: 16px; }
+  .rlinks { display: flex; gap: 18px; padding: 0 16px 10px; }
+  .rlinks .link { font-size: 13px; padding: 4px 0; }
+  .daychip.taken { color: #5b616e; border-style: dashed; }
+  .daychip.taken small { color: var(--warn); }
+  .wcard .days { margin-bottom: 12px; }
+  button.small { width: 100%; padding: 12px; font-size: 15px; }
+  .exname { font-size: 18px; font-weight: 700; }
+  .exrow { width: 100%; background: none; color: var(--text); font-weight: 400; border-radius: 0; padding: 13px 0; text-align: left; }
+  .exrow .r { color: var(--accent); font-size: 20px; font-weight: 700; }
+  select.tin { appearance: none; -webkit-appearance: none; }
   .small-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: 4px; }
 </style>
 </head>
@@ -157,6 +212,7 @@
   <select id="pick" aria-label="Change workout"></select>
   <button class="link" id="restart">Restart day</button>
   <button class="link" id="export">⬇ Export log</button>
+  <button class="link" id="dashLink">📊 Dashboard</button>
   <div class="syncline" id="sync"></div>
 </footer>
 
@@ -164,58 +220,217 @@
 <script src="config.js" onerror="window.LIFT_CONFIG = window.LIFT_CONFIG || {}"></script>
 <script>
 // =============================================================================
-// WORKOUT PLAN (built-in default). If you save a plan to the database
-// (Dashboard → "Save plan to database"), the database copy wins from then on.
-// Each block = one card. Two exercises in a block = superset (alternate them).
+// BUILT-IN ROUTINES (starter workouts). Edit these to change the defaults.
+// Each block = one screen. Two exercises in a block = superset (alternate them).
 // =============================================================================
-const DEFAULT_PLAN = [
-  { name: "Upper A", when: "Monday", blocks: [
-    [ { n: "Flat barbell bench", r: "6–10", note: "Stop 1 rep shy of failure · rest 2–3 min" } ],
-    [ { n: "Chest-supported row", r: "8–12", note: "Neutral grip · to failure · rest 2 min" } ],
-    [ { n: "Neutral-grip lat pulldown", r: "10–12", note: "To failure · rest 2 min" } ],
-    [ { n: "Cable flyes", r: "12–15", note: "To failure · rest 90 sec" } ],
-    [ { n: "Lateral raises", r: "12–15", note: "To failure · rest 90 sec" } ],
-    [ { n: "Hammer curls", r: "10–12", note: "To failure" },
-      { n: "Rope pushdowns", r: "10–12", note: "To failure" } ],
-  ]},
-  { name: "Lower A", when: "Tuesday", blocks: [
-    [ { n: "Back squat", r: "6–10", note: "Stop 1 rep shy · rest 2–3 min" } ],
-    [ { n: "Romanian deadlift", r: "8–10", note: "Stop 1 rep shy · rest 2–3 min" } ],
-    [ { n: "Leg press", r: "10–15", note: "To failure · rest 2 min" } ],
-    [ { n: "Lying leg curl", r: "10–12", note: "To failure · rest 90 sec" } ],
-    [ { n: "Standing calf raise", r: "12–15", note: "To failure · rest 60–90 sec" } ],
-    [ { n: "Hanging knee raise", r: "12–15", note: "To failure · rest 60–90 sec" } ],
-  ]},
-  { name: "Upper B", when: "Thursday", blocks: [
-    [ { n: "Incline barbell bench", r: "6–10", note: "Stop 1 rep shy of failure · rest 2–3 min" } ],
-    [ { n: "Neutral-grip pull-ups", r: "6–10", note: "To failure · rest 2 min" } ],
-    [ { n: "Flat DB press", r: "8–12", note: "To failure · rest 2 min" } ],
-    [ { n: "One-arm DB row", r: "10–12 each", note: "To failure · rest 90 sec" } ],
-    [ { n: "Cable flyes", r: "12–15", note: "To failure · rest 90 sec" } ],
-    [ { n: "Military press", r: "6–10", note: "Stop 1 rep shy of failure · rest 2 min" } ],
-    [ { n: "Lateral raises", r: "12–15", note: "To failure · rest 60–90 sec" } ],
-    [ { n: "Face pulls", r: "15", note: "To failure · rest 60–90 sec" } ],
-    [ { n: "Rope hammer curls", r: "10–12", note: "To failure" },
-      { n: "Overhead cable triceps ext.", r: "10–12", note: "To failure" } ],
-  ]},
-  { name: "Lower B", when: "Friday", blocks: [
-    [ { n: "Trap-bar deadlift", r: "6–10", note: "Stop 1 rep shy · rest 2–3 min" } ],
-    [ { n: "Bulgarian split squat", r: "8–10 each", note: "Rest 2 min" } ],
-    [ { n: "Hip thrust", r: "8–12", note: "To failure · rest 2 min" } ],
-    [ { n: "Seated leg curl", r: "10–12", note: "To failure · rest 90 sec" } ],
-    [ { n: "Leg extension", r: "12–15", note: "To failure · rest 90 sec" } ],
-    [ { n: "Seated calf raise", r: "12–15", note: "To failure · rest 60–90 sec" } ],
-  ]},
-];
-const SETS = 2;
+const x = (n, r, note = "") => ({ n, r, note });
+const HEAVY = "Stop 1 rep shy · rest 2–3 min", MID = "To failure · rest 2 min", ISO = "To failure · rest 90 sec";
+
+const TEMPLATES = {
+  "upper-lower": { label: "Upper / Lower", blurb: "4 days · each muscle 2× a week", days: [1, 2, 4, 5], workouts: [
+    { name: "Upper A", blocks: [
+      [x("Flat barbell bench", "6–10", HEAVY)], [x("Chest-supported row", "8–12", "Neutral grip · " + MID)],
+      [x("Neutral-grip lat pulldown", "10–12", MID)], [x("Cable flyes", "12–15", ISO)], [x("Lateral raises", "12–15", ISO)],
+      [x("Hammer curls", "10–12", "To failure"), x("Rope pushdowns", "10–12", "To failure")] ] },
+    { name: "Lower A", blocks: [
+      [x("Back squat", "6–10", HEAVY)], [x("Romanian deadlift", "8–10", HEAVY)], [x("Leg press", "10–15", MID)],
+      [x("Lying leg curl", "10–12", ISO)], [x("Standing calf raise", "12–15", "To failure · rest 60–90 sec")],
+      [x("Hanging knee raise", "12–15", "To failure · rest 60–90 sec")] ] },
+    { name: "Upper B", blocks: [
+      [x("Incline barbell bench", "6–10", HEAVY)], [x("Neutral-grip pull-ups", "6–10", MID)], [x("Flat DB press", "8–12", MID)],
+      [x("One-arm DB row", "10–12 each", ISO)], [x("Cable flyes", "12–15", ISO)], [x("Military press", "6–10", "Stop 1 rep shy · rest 2 min")],
+      [x("Lateral raises", "12–15", "To failure · rest 60–90 sec")], [x("Face pulls", "15", "To failure · rest 60–90 sec")],
+      [x("Rope hammer curls", "10–12", "To failure"), x("Overhead cable triceps ext.", "10–12", "To failure")] ] },
+    { name: "Lower B", blocks: [
+      [x("Trap-bar deadlift", "6–10", HEAVY)], [x("Bulgarian split squat", "8–10 each", "Rest 2 min")], [x("Hip thrust", "8–12", MID)],
+      [x("Seated leg curl", "10–12", ISO)], [x("Leg extension", "12–15", ISO)], [x("Seated calf raise", "12–15", "To failure · rest 60–90 sec")] ] },
+  ] },
+  "ppl": { label: "Push / Pull / Legs", blurb: "3 days, or 6 to run it twice", days: [1, 3, 5], workouts: [
+    { name: "Push", blocks: [
+      [x("Flat barbell bench", "6–10", HEAVY)], [x("Incline DB press", "8–12", MID)], [x("Military press", "6–10", HEAVY)],
+      [x("Cable flyes", "12–15", ISO)], [x("Lateral raises", "12–15", ISO)],
+      [x("Rope pushdowns", "10–12", "To failure"), x("Overhead cable triceps ext.", "10–12", "To failure")] ] },
+    { name: "Pull", blocks: [
+      [x("Neutral-grip pull-ups", "6–10", MID)], [x("Chest-supported row", "8–12", MID)], [x("One-arm DB row", "10–12 each", ISO)],
+      [x("Neutral-grip lat pulldown", "10–12", ISO)], [x("Face pulls", "15", ISO)], [x("Hammer curls", "10–12", ISO)] ] },
+    { name: "Legs", blocks: [
+      [x("Back squat", "6–10", HEAVY)], [x("Romanian deadlift", "8–10", HEAVY)], [x("Leg press", "10–15", MID)],
+      [x("Lying leg curl", "10–12", ISO)], [x("Leg extension", "12–15", ISO)], [x("Standing calf raise", "12–15", ISO)] ] },
+  ] },
+  "push-pull": { label: "Push / Pull", blurb: "4 days · legs split between them", days: [1, 2, 4, 5], workouts: [
+    { name: "Push", blocks: [
+      [x("Flat barbell bench", "6–10", HEAVY)], [x("Cable flyes", "12–15", ISO)], [x("Military press", "6–10", HEAVY)],
+      [x("Lateral raises", "12–15", ISO)], [x("Rope pushdowns", "10–12", ISO)], [x("Back squat", "6–10", HEAVY)],
+      [x("Leg extension", "12–15", ISO)], [x("Standing calf raise", "12–15", ISO)] ] },
+    { name: "Pull", blocks: [
+      [x("Neutral-grip pull-ups", "6–10", MID)], [x("Chest-supported row", "8–12", MID)], [x("One-arm DB row", "10–12 each", ISO)],
+      [x("Face pulls", "15", ISO)], [x("Hammer curls", "10–12", ISO)], [x("Romanian deadlift", "8–10", HEAVY)],
+      [x("Lying leg curl", "10–12", ISO)], [x("Hip thrust", "8–12", MID)] ] },
+  ] },
+  "bro": { label: "Bro split", blurb: "5 days · one muscle group a day", days: [1, 2, 3, 4, 5], workouts: [
+    { name: "Chest", blocks: [
+      [x("Flat barbell bench", "6–10", HEAVY)], [x("Incline DB press", "8–12", MID)], [x("Machine chest press", "10–12", MID)],
+      [x("Cable flyes", "12–15", ISO)], [x("Dips", "8–12", ISO)] ] },
+    { name: "Back", blocks: [
+      [x("Neutral-grip pull-ups", "6–10", MID)], [x("Chest-supported row", "8–12", MID)], [x("One-arm DB row", "10–12 each", ISO)],
+      [x("Neutral-grip lat pulldown", "10–12", ISO)], [x("Face pulls", "15", ISO)] ] },
+    { name: "Shoulders", blocks: [
+      [x("Military press", "6–10", HEAVY)], [x("Seated DB shoulder press", "8–12", MID)], [x("Lateral raises", "12–15", ISO)],
+      [x("Rear delt flyes", "12–15", ISO)], [x("DB shrugs", "10–12", ISO)] ] },
+    { name: "Legs", blocks: [
+      [x("Back squat", "6–10", HEAVY)], [x("Romanian deadlift", "8–10", HEAVY)], [x("Leg press", "10–15", MID)],
+      [x("Lying leg curl", "10–12", ISO)], [x("Leg extension", "12–15", ISO)], [x("Standing calf raise", "12–15", ISO)] ] },
+    { name: "Arms", blocks: [
+      [x("Hammer curls", "10–12", "To failure"), x("Rope pushdowns", "10–12", "To failure")],
+      [x("Rope hammer curls", "10–12", "To failure"), x("Overhead cable triceps ext.", "10–12", "To failure")],
+      [x("Cross-body hammer curls", "10–12", "To failure"), x("Close-grip bench press", "8–10", "Stop 1 rep shy")] ] },
+  ] },
+  "full-body": { label: "Full body", blurb: "3 days · A/B/C", days: [1, 3, 5], workouts: [
+    { name: "Full Body A", blocks: [
+      [x("Back squat", "6–10", HEAVY)], [x("Flat barbell bench", "6–10", HEAVY)], [x("Chest-supported row", "8–12", MID)],
+      [x("Military press", "8–10", MID)], [x("Lying leg curl", "10–12", ISO)],
+      [x("Hammer curls", "10–12", "To failure"), x("Rope pushdowns", "10–12", "To failure")] ] },
+    { name: "Full Body B", blocks: [
+      [x("Trap-bar deadlift", "6–10", HEAVY)], [x("Incline DB press", "8–12", MID)], [x("Neutral-grip pull-ups", "6–10", MID)],
+      [x("Lateral raises", "12–15", ISO)], [x("Leg press", "10–15", MID)], [x("Standing calf raise", "12–15", ISO)] ] },
+    { name: "Full Body C", blocks: [
+      [x("Romanian deadlift", "8–10", HEAVY)], [x("Seated DB shoulder press", "8–12", MID)], [x("Neutral-grip lat pulldown", "10–12", MID)],
+      [x("Bulgarian split squat", "8–10 each", MID)], [x("Cable flyes", "12–15", ISO)],
+      [x("Rope hammer curls", "10–12", "To failure"), x("Overhead cable triceps ext.", "10–12", "To failure")] ] },
+  ] },
+};
+// Which weekday(s) each built-in workout lands on (0 = Sun … 6 = Sat)
+const DEFAULT_DAYS = {
+  "upper-lower": [[1], [2], [4], [5]],
+  "push-pull":   [[1, 4], [2, 5]],
+  "ppl":         [[1], [3], [5]],
+  "bro":         [[1], [2], [3], [4], [5]],
+  "full-body":   [[1], [3], [5]],
+};
+const DEFAULT_ORDER = ["upper-lower", "push-pull", "ppl", "bro", "full-body"];
+
+// Standard exercise list for the picker (grouped). Users can add their own.
+const EXERCISE_LIBRARY = {
+  "Chest": ["Flat barbell bench", "Incline barbell bench", "Decline bench", "Flat DB press", "Incline DB press",
+    "Machine chest press", "Cable flyes", "Pec deck", "Dips", "Push-ups"],
+  "Back": ["Neutral-grip pull-ups", "Pull-ups", "Chin-ups", "Neutral-grip lat pulldown", "Lat pulldown",
+    "Chest-supported row", "One-arm DB row", "Barbell row", "Seated cable row", "T-bar row", "Face pulls", "DB shrugs"],
+  "Shoulders": ["Military press", "Seated DB shoulder press", "Arnold press", "Lateral raises", "Cable lateral raise",
+    "Rear delt flyes", "Reverse pec deck", "Upright row"],
+  "Biceps": ["Hammer curls", "Rope hammer curls", "Cross-body hammer curls", "Barbell curl", "EZ-bar curl",
+    "Preacher curl", "Incline DB curl", "Cable curl"],
+  "Triceps": ["Rope pushdowns", "Overhead cable triceps ext.", "Skull crushers", "Close-grip bench press", "Triceps dips"],
+  "Quads": ["Back squat", "Front squat", "Hack squat", "Leg press", "Bulgarian split squat", "Walking lunges",
+    "Goblet squat", "Step-ups", "Leg extension"],
+  "Hamstrings & glutes": ["Romanian deadlift", "Deadlift", "Trap-bar deadlift", "Lying leg curl", "Seated leg curl",
+    "Hip thrust", "Glute bridge", "Good mornings", "Nordic curl"],
+  "Calves": ["Standing calf raise", "Seated calf raise"],
+  "Core": ["Hanging knee raise", "Cable crunch", "Plank", "Ab wheel", "Farmer's carry"],
+};
+const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // show Mon → Sun
+const sortDays = days => [...days].sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b));
+const clone = o => JSON.parse(JSON.stringify(o));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+// =============================================================================
+// ROUTINES
+// A routine = { id, name, sets, workouts: [{ name, days: [weekdays], blocks }] }
+//   blocks:   [[exercise], [exercise, exercise]]  — 2+ exercises in a block = superset
+//   exercise: { n: name, r: reps, note, sets? }   — sets falls back to routine.sets
+// The app goes through the routine's training days in week order (Mon → Sun),
+// doing whichever workout is assigned to each day. Missed days don't skip anything.
+//
+// Everything the user owns is one "store", saved on the phone and (signed in) in the database:
+//   { v: 3, selected: routine id, custom: [routines they made], exercises: [{ n, g }] }
+// =============================================================================
+function defaultRoutine(key) {
+  const t = TEMPLATES[key];
+  return { id: "default:" + key, name: t.label, builtin: true, sets: 2,
+           workouts: t.workouts.map((w, i) => ({ name: w.name, days: [...DEFAULT_DAYS[key][i]], blocks: clone(w.blocks) })) };
+}
+const emptyStore = () => ({ v: 3, selected: "default:upper-lower", custom: [], exercises: [] });
+
+function validBlocks(bs) {
+  return Array.isArray(bs) && bs.length > 0 &&
+    bs.every(b => Array.isArray(b) && b.length > 0 && b.every(e => e && typeof e.n === "string" && e.n.trim() && typeof e.r === "string"));
+}
+const cleanDays = ds => Array.isArray(ds) ? sortDays([...new Set(ds.filter(d => Number.isInteger(d) && d >= 0 && d <= 6))]) : [];
+function fixRoutine(r) {
+  if (!r || typeof r.name !== "string" || !r.name.trim() || !Array.isArray(r.workouts) || !r.workouts.length) return null;
+  if (!r.workouts.every(w => w && typeof w.name === "string" && w.name.trim() && validBlocks(w.blocks))) return null;
+  const sets = Number.isInteger(r.sets) && r.sets >= 1 && r.sets <= 10 ? r.sets : 2;
+  const taken = new Set();
+  const workouts = r.workouts.map(w => {
+    const days = cleanDays(w.days).filter(d => !taken.has(d));   // one workout per day
+    days.forEach(d => taken.add(d));
+    return { name: w.name.trim(), days, blocks: w.blocks };
+  });
+  return { id: typeof r.id === "string" && r.id && !r.id.startsWith("default:") ? r.id : "r-" + uid(), name: r.name.trim(), sets, workouts };
+}
+// Spread old-style plans (one list of days for the whole plan) across their workouts
+function daysRoundRobin(days, n) {
+  const out = Array.from({ length: n }, () => []);
+  sortDays(days).forEach((d, k) => out[k % n].push(d));
+  return out;
+}
+const sameBlocks = (a, b) => JSON.stringify(a.map(w => [w.name, w.blocks])) === JSON.stringify(b.map(w => [w.name, w.blocks]));
+
+// Accepts the current store, or plans saved by older versions of the app
+function normalizeStore(p) {
+  if (p && p.v === 3) {
+    const custom = (Array.isArray(p.custom) ? p.custom : []).map(fixRoutine).filter(Boolean);
+    const exercises = (Array.isArray(p.exercises) ? p.exercises : [])
+      .filter(e => e && typeof e.n === "string" && e.n.trim()).map(e => ({ n: e.n.trim(), g: typeof e.g === "string" && e.g ? e.g : "My exercises" }));
+    const s = { v: 3, selected: p.selected, custom, exercises };
+    if (!routineIn(s, s.selected)) s.selected = "default:upper-lower";
+    return s;
+  }
+  let old = null;
+  if (Array.isArray(p) && p.every(w => w && w.name && validBlocks(w.blocks))) {         // v1: array with day names
+    old = { workouts: p.map(w => ({ name: w.name, blocks: w.blocks, days: [DAY_FULL.indexOf(w.when)].filter(d => d >= 0) })) };
+  } else if (p && typeof p === "object" && Array.isArray(p.workouts) && p.workouts.every(w => w && w.name && validBlocks(w.blocks))) {   // v2
+    const rr = daysRoundRobin(cleanDays(p.days).length ? cleanDays(p.days) : [1, 3, 5], p.workouts.length);
+    if (TEMPLATES[p.template] && DEFAULT_DAYS[p.template] && sameBlocks(p.workouts, TEMPLATES[p.template].workouts)) {
+      return { ...emptyStore(), selected: "default:" + p.template };
+    }
+    old = { sets: p.sets, workouts: p.workouts.map((w, i) => ({ name: w.name, blocks: w.blocks, days: rr[i] })) };
+  }
+  if (!old) return null;
+  if (sameBlocks(old.workouts, TEMPLATES["upper-lower"].workouts) && old.workouts.every((w, i) => JSON.stringify(cleanDays(w.days)) === JSON.stringify(DEFAULT_DAYS["upper-lower"][i]))) {
+    return emptyStore();
+  }
+  const mine = fixRoutine({ name: "My plan", sets: old.sets, workouts: old.workouts });
+  return mine ? { ...emptyStore(), selected: mine.id, custom: [mine] } : null;
+}
+const allRoutinesIn = s => DEFAULT_ORDER.map(defaultRoutine).concat(s.custom);
+const routineIn = (s, id) => allRoutinesIn(s).find(r => r.id === id) || null;
+
+// Training days in week order → which workout each one is
+function slotsOf(r) {
+  const s = [];
+  DAY_ORDER.forEach(d => { const w = r.workouts.findIndex(x => (x.days || []).includes(d)); if (w >= 0) s.push({ d, w }); });
+  r.workouts.forEach((x, i) => { if (!(x.days || []).length) s.push({ d: null, w: i }); });   // no day picked: still in the rotation
+  return s;
+}
+function whenOf(i, r = PLANCFG) {
+  const ds = sortDays((r.workouts[i] && r.workouts[i].days) || []);
+  return ds.length === 1 ? DAY_FULL[ds[0]] : ds.map(d => DAY_SHORT[d]).join(" & ");
+}
+const daysSummary = r => {
+  const ds = sortDays([...new Set(r.workouts.flatMap(w => w.days || []))]);
+  return `${ds.length} day${ds.length === 1 ? "" : "s"} · ${ds.map(d => DAY_SHORT[d]).join(" ")}`;
+};
+const setsFor = e => (Number.isInteger(e.sets) && e.sets > 0 ? e.sets : PLANCFG.sets);
 
 const KEY = "lift-state-v2";        // where you are in today's workout
-const PLAN_KEY = "lift-plan-v1";    // cached copy of the database plan
+const PLAN_KEY = "lift-plan-v1";    // this phone's routines store
+const PLAN_DIRTY = "lift-plan-dirty"; // changed here, not yet saved to the database
 
 // ---------------------------------------------------------------- helpers ---
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const localDate = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -225,12 +440,10 @@ const shortDate = iso => new Date(iso + "T00:00:00").toLocaleDateString(undefine
 const lsGet = (k, fallback) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? fallback; } catch (e) { return fallback; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
-function validPlan(p) {
-  return Array.isArray(p) && p.length > 0 && p.every(d =>
-    d && typeof d.name === "string" && typeof d.when === "string" && Array.isArray(d.blocks) && d.blocks.length > 0 &&
-    d.blocks.every(b => Array.isArray(b) && b.length > 0 && b.every(e => e && typeof e.n === "string" && typeof e.r === "string")));
-}
-let PLAN = validPlan(lsGet(PLAN_KEY)) ? lsGet(PLAN_KEY) : DEFAULT_PLAN;
+let STORE = normalizeStore(lsGet(PLAN_KEY, null)) || emptyStore();
+let PLANCFG = routineIn(STORE, STORE.selected);
+let PLAN = PLANCFG.workouts;
+let SLOTS = slotsOf(PLANCFG);
 
 // =============================================================================
 // DATA LAYER
@@ -358,25 +571,43 @@ const Sync = {
 };
 
 // Plan stored in the database (one row per user, table user_plan)
+// Edited here and not saved yet → push it. Otherwise the database copy wins.
+// First sign-in with no plan in the database → upload this phone's plan.
 async function pullPlan() {
+  if (lsGet(PLAN_DIRTY, false)) return savePlanToDb();
   const { data, error } = await sb.from("user_plan").select("plan").maybeSingle();
   if (error) throw error;
-  if (data && validPlan(data.plan)) {
-    lsSet(PLAN_KEY, data.plan);
-    setPlan(data.plan);
-  }
+  const s = data && normalizeStore(data.plan);
+  if (s) { STORE = s; lsSet(PLAN_KEY, STORE); applyRoutine(); }
+  else if (!data) await savePlanToDb();
 }
 async function savePlanToDb() {
-  const { error } = await sb.from("user_plan").upsert({ plan: PLAN, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  const { error } = await sb.from("user_plan").upsert({ plan: STORE, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
   if (error) throw error;
-  lsSet(PLAN_KEY, PLAN);
+  lsSet(PLAN_DIRTY, false);
 }
-function setPlan(p) {
-  const changed = JSON.stringify(p) !== JSON.stringify(PLAN);
-  PLAN = p;
-  if (!changed || !state) return;
-  const ok = PLAN[state.day] && state.queue.every(i => i < PLAN[state.day].blocks.length);
-  if (!ok) { state = fresh(Math.min(state.day, PLAN.length - 1)); save(); }
+// Re-read the selected routine. If the workout in progress changed, it restarts.
+function applyRoutine() {
+  const before = state && PLAN[state.day] ? JSON.stringify(PLAN[state.day]) : null;
+  PLANCFG = routineIn(STORE, STORE.selected) || routineIn(STORE, "default:upper-lower");
+  PLAN = PLANCFG.workouts; SLOTS = slotsOf(PLANCFG);
+  if (!state) return;
+  const ok = SLOTS[state.slot] && SLOTS[state.slot].w === state.day && PLAN[state.day] &&
+             state.queue.every(i => i < PLAN[state.day].blocks.length) && JSON.stringify(PLAN[state.day]) === before;
+  if (!ok) { state = fresh(SLOTS[state.slot] ? state.slot : 0); save(); }
+}
+// Save the store on this phone (and the database when signed in)
+function saveStore() {
+  lsSet(PLAN_KEY, STORE);
+  lsSet(PLAN_DIRTY, CONFIGURED);
+  applyRoutine();
+  if (Sync.ready() && Sync.online()) savePlanToDb().then(() => Sync.show()).catch(e => console.warn("Routine sync failed", e));
+}
+function selectRoutine(id) {
+  if (STORE.selected === id || !routineIn(STORE, id)) return;
+  STORE.selected = id;
+  saveStore();
+  state = fresh(0); save();
 }
 
 // Load Supabase only when keys are set, without blocking the app from opening
@@ -424,12 +655,15 @@ document.addEventListener("visibilitychange", () => {
 // =============================================================================
 let state;
 let view = "workout"; // "workout" | "dashboard"
-function fresh(day) {
-  return { day, session: uid(), queue: PLAN[day].blocks.map((_, i) => i), skipped: [], history: [], draft: {} };
+function fresh(slot) {
+  slot = SLOTS[slot] ? slot : 0;
+  const day = SLOTS[slot].w;
+  return { slot, day, session: uid(), queue: PLAN[day].blocks.map((_, i) => i), skipped: [], history: [], draft: {} };
 }
 function load() {
   const s = lsGet(KEY, null);
   if (s && PLAN[s.day] && Array.isArray(s.queue) && s.queue.every(i => i < PLAN[s.day].blocks.length)) {
+    if (!SLOTS[s.slot] || SLOTS[s.slot].w !== s.day) s.slot = Math.max(0, SLOTS.findIndex(x => x.w === s.day));
     s.draft = s.draft || {}; s.session = s.session || uid(); s.history = s.history || []; s.skipped = s.skipped || [];
     return s;
   }
@@ -547,9 +781,11 @@ function renderDashboard() {
   $("main").innerHTML = `
     <div class="tiles">
       <div class="tile"><div class="num">${sessions.length}</div><div class="lbl">Workouts</div></div>
-      <div class="tile"><div class="num">${thisWeek}<span style="font-size:16px;color:var(--muted)">/4</span></div><div class="lbl">This week</div></div>
+      <div class="tile"><div class="num">${thisWeek}<span style="font-size:16px;color:var(--muted)">/${SLOTS.length}</span></div><div class="lbl">This week</div></div>
       <div class="tile"><div class="num">${latest ? latest.weight_lb : "–"}</div><div class="lbl">Bodyweight (lb)</div></div>
     </div>
+
+    ${routineSectionHtml()}
 
     <div class="sec">Bodyweight</div>
     <div class="card">
@@ -597,8 +833,7 @@ function renderDashboard() {
     <div class="actions"><button class="secondary" id="back">← Back</button></div>
     <div class="small-actions">
       ${Install.available() ? `<button class="link" id="installLink">📲 Install app</button>` : ""}
-      ${user ? `<button class="link" id="planSave">Save plan to database</button>
-                <button class="link" id="signOut">Sign out (${esc(user.email || "")})</button>`
+      ${user ? `<button class="link" id="signOut">Sign out (${esc(user.email || "")})</button>`
              : CONFIGURED && sb ? `<button class="link" id="signIn">Sign in to sync</button>` : ""}
     </div>
     <div class="msg" id="dashMsg" style="text-align:center"></div>`;
@@ -631,16 +866,342 @@ function renderDashboard() {
   };
   if ($("signOut")) $("signOut").onclick = async () => { await sb.auth.signOut(); user = null; view = "workout"; render(); Sync.show(); };
   if ($("signIn")) $("signIn").onclick = () => { skipLogin = false; render(); };
-  if ($("planSave")) $("planSave").onclick = async () => {
-    $("dashMsg").textContent = "Saving…";
-    try { await savePlanToDb(); $("dashMsg").textContent = "Plan saved. Edit it in Supabase → Table Editor → user_plan."; }
-    catch (e) { $("dashMsg").textContent = "Couldn't save plan: " + (e.message || e); }
+  wireRoutineSection();
+}
+
+// =============================================================================
+// ROUTINES UI
+//   Dashboard → Routine list: tap a routine → Confirm → it's selected (✓)
+//   + Create routine → name it, add workouts, pick each workout's days,
+//   add exercises from the standard list or their own.
+// Edits happen on a draft (RD); nothing changes until Save routine.
+// =============================================================================
+let confirmId = null; // routine waiting for "Confirm"
+let RD = null;        // draft routine being created/edited
+let edW = 0;          // workout open in the workout editor
+let pickTarget = null; // where a picked exercise goes: { block: null | index }
+let pickQuery = "";
+let armed = null;     // two-tap buttons (delete): key waiting for 2nd tap
+const qsa = s => [...document.querySelectorAll(s)];
+
+function twoTap(key, btn, label) {
+  if (armed === key) { armed = null; return true; }
+  armed = key; btn.textContent = label;
+  setTimeout(() => { if (armed === key) { armed = null; render(); } }, 3000);
+  return false;
+}
+const go = v => { view = v; render(); window.scrollTo(0, 0); };
+
+// ---------------------------------------------------- dashboard section ----
+function routineSectionHtml() {
+  return `
+    <div class="sec">Routine</div>
+    <div class="rlist">${allRoutinesIn(STORE).map(r => {
+      const on = r.id === STORE.selected, ask = confirmId === r.id;
+      return `
+      <div class="rcard ${on ? "on" : ""} ${ask ? "ask" : ""}">
+        <button class="rpick" data-r="${esc(r.id)}">
+          <span class="rtop"><span class="rname">${esc(r.name)}</span>${on ? `<span class="rcheck">✓ Selected</span>` : r.builtin ? "" : `<span class="rtag">Custom</span>`}</span>
+          <span class="rmeta">${r.workouts.map(w => esc(w.name)).join(" · ")}</span>
+          <span class="rmeta">${esc(daysSummary(r))}</span>
+        </button>
+        ${ask ? `
+        <div class="rconfirm">
+          <span>Switch to <b>${esc(r.name)}</b>? Today's workout starts over.</span>
+          <div class="row2"><button class="primary" data-rok="${esc(r.id)}">Confirm</button><button class="secondary" data-rno="1">Cancel</button></div>
+        </div>` : ""}
+        <div class="rlinks">${r.builtin
+          ? `<button class="link" data-rcopy="${esc(r.id)}">Copy &amp; customize</button>`
+          : `<button class="link" data-redit="${esc(r.id)}">Edit</button><button class="link" data-rdel="${esc(r.id)}">Delete</button>`}
+        </div>
+      </div>`; }).join("")}
+    </div>
+    <button class="primary addbtn" id="createRoutine">+ Create routine</button>`;
+}
+function wireRoutineSection() {
+  qsa("[data-r]").forEach(b => b.onclick = () => {
+    const id = b.dataset.r;
+    if (id === STORE.selected) return;
+    confirmId = confirmId === id ? null : id; render();
+  });
+  qsa("[data-rok]").forEach(b => b.onclick = () => { selectRoutine(b.dataset.rok); confirmId = null; render(); });
+  qsa("[data-rno]").forEach(b => b.onclick = () => { confirmId = null; render(); });
+  qsa("[data-rcopy]").forEach(b => b.onclick = () => {
+    const r = clone(routineIn(STORE, b.dataset.rcopy));
+    openRoutineEditor({ id: null, name: r.name + " (custom)", sets: r.sets, workouts: r.workouts });
+  });
+  qsa("[data-redit]").forEach(b => b.onclick = () => openRoutineEditor(clone(routineIn(STORE, b.dataset.redit))));
+  qsa("[data-rdel]").forEach(b => b.onclick = () => {
+    const id = b.dataset.rdel;
+    if (!twoTap("rdel-" + id, b, "Tap again to delete")) return;
+    STORE.custom = STORE.custom.filter(r => r.id !== id);
+    const wasSelected = STORE.selected === id;
+    if (wasSelected) STORE.selected = "default:upper-lower";
+    saveStore();
+    if (wasSelected) { state = fresh(0); save(); }
+    render();
+  });
+  $("createRoutine").onclick = () => openRoutineEditor(null);
+}
+
+// ---------------------------------------------------- routine editor -------
+function openRoutineEditor(r) {
+  RD = r ? clone(r) : { id: null, name: "", sets: 2, workouts: [] };
+  RD.workouts.forEach(w => { w.days = w.days || []; });
+  confirmId = null; armed = null;
+  go("routine");
+}
+const workoutOfDay = d => RD.workouts.findIndex(w => w.days.includes(d));
+
+function renderRoutineEditor() {
+  $("day").textContent = RD.id ? "Edit routine" : "Create routine";
+  $("sub").textContent = "Add workouts and pick the days for each";
+  $("barwrap").style.display = "none";
+  const order = slotsOf(RD).filter(s => s.d !== null);
+  $("main").innerHTML = `
+    <div class="card">
+      <label class="lbl">Routine name</label>
+      <input class="tin big" id="rname" value="${esc(RD.name)}" placeholder="e.g. Summer bulk, 5-day split">
+    </div>
+
+    <div class="sec">Workouts</div>
+    ${RD.workouts.length ? "" : `<div class="card empty">No workouts yet. Add one below. Each workout gets its own day(s).</div>`}
+    ${RD.workouts.map((w, wi) => {
+      const n = w.blocks.flat().length;
+      return `
+      <div class="card wcard">
+        <div class="ehead">
+          <div><div class="rname">${esc(w.name)}</div><div class="rmeta">${n} exercise${n === 1 ? "" : "s"}${n ? ": " + esc(w.blocks.flat().map(e => e.n).slice(0, 4).join(", ")) + (n > 4 ? "…" : "") : ""}</div></div>
+          <div class="mini">
+            <button data-wup="${wi}" ${wi === 0 ? "disabled" : ""} aria-label="Move up">↑</button>
+            <button data-wdown="${wi}" ${wi === RD.workouts.length - 1 ? "disabled" : ""} aria-label="Move down">↓</button>
+            <button data-wdel="${wi}" aria-label="Delete">🗑</button>
+          </div>
+        </div>
+        <label class="lbl" style="margin-top:12px">Days</label>
+        <div class="days">${DAY_ORDER.map(d => {
+          const owner = workoutOfDay(d);
+          const cls = owner === wi ? "on" : owner >= 0 ? "taken" : "";
+          return `<button class="daychip ${cls}" data-wday="${wi}:${d}" title="${owner >= 0 && owner !== wi ? esc(RD.workouts[owner].name) : ""}">${DAY_SHORT[d].slice(0, 1)}<small>${owner >= 0 && owner !== wi ? esc(RD.workouts[owner].name.slice(0, 4)) : DAY_SHORT[d]}</small></button>`;
+        }).join("")}</div>
+        <button class="secondary small" data-wopen="${wi}">${n ? "Edit exercises" : "+ Add exercises"}</button>
+      </div>`; }).join("")}
+    <button class="secondary addbtn" id="addWorkout">+ Add workout</button>
+
+    <div class="sec">Sets per exercise</div>
+    <div class="card stepper-row">
+      <span>Default for every exercise</span>
+      <div class="stepper"><button id="setsDown" aria-label="Fewer sets">−</button><b id="setsVal">${RD.sets}</b><button id="setsUp" aria-label="More sets">+</button></div>
+    </div>
+
+    ${order.length ? `<div class="hint">Each week: ${order.map(s => `${DAY_SHORT[s.d]} ${esc(RD.workouts[s.w].name)}`).join(" → ")}. Missed a day? The app just picks up with the next workout.</div>` : ""}
+
+    <div class="actions">
+      <button class="primary" id="rSave">Save routine</button>
+      <button class="secondary" id="rCancel">Cancel</button>
+    </div>
+    <div class="msg bad" id="rMsg" style="text-align:center"></div>`;
+
+  $("rname").oninput = e => { RD.name = e.target.value; };
+  const move = (arr, i, j) => { const [it] = arr.splice(i, 1); arr.splice(j, 0, it); };
+  qsa("[data-wup]").forEach(b => b.onclick = () => { const i = +b.dataset.wup; move(RD.workouts, i, i - 1); render(); });
+  qsa("[data-wdown]").forEach(b => b.onclick = () => { const i = +b.dataset.wdown; move(RD.workouts, i, i + 1); render(); });
+  qsa("[data-wdel]").forEach(b => b.onclick = () => {
+    const i = +b.dataset.wdel;
+    if (!twoTap("wdel-" + i, b, "Sure?")) return;
+    RD.workouts.splice(i, 1); render();
+  });
+  // Tap a day: give it to this workout (taking it from another workout if needed). Tap again to clear.
+  qsa("[data-wday]").forEach(b => b.onclick = () => {
+    const [wi, d] = b.dataset.wday.split(":").map(Number);
+    const w = RD.workouts[wi];
+    if (w.days.includes(d)) w.days = w.days.filter(x => x !== d);
+    else { RD.workouts.forEach(o => { o.days = o.days.filter(x => x !== d); }); w.days = sortDays([...w.days, d]); }
+    render();
+  });
+  qsa("[data-wopen]").forEach(b => b.onclick = () => { edW = +b.dataset.wopen; go("workoutEdit"); });
+  $("addWorkout").onclick = () => {
+    RD.workouts.push({ name: `Workout ${RD.workouts.length + 1}`, days: [], blocks: [] });
+    edW = RD.workouts.length - 1; go("workoutEdit");
+  };
+  $("setsDown").onclick = () => { RD.sets = Math.max(1, RD.sets - 1); render(); };
+  $("setsUp").onclick = () => { RD.sets = Math.min(10, RD.sets + 1); render(); };
+  $("rCancel").onclick = () => { RD = null; go("dashboard"); };
+  $("rSave").onclick = () => {
+    const msg = t => { $("rMsg").textContent = t; };
+    if (!RD.name.trim()) return msg("Give your routine a name.");
+    if (!RD.workouts.length) return msg("Add at least one workout.");
+    const noEx = RD.workouts.find(w => !w.blocks.flat().length);
+    if (noEx) return msg(`${noEx.name} needs at least one exercise.`);
+    const noDay = RD.workouts.find(w => !w.days.length);
+    if (noDay) return msg(`Pick at least one day for ${noDay.name}.`);
+    const r = fixRoutine({ ...RD, id: RD.id || "r-" + uid() });
+    if (!r) return msg("Something's missing. Check each workout has a name and exercises.");
+    const i = STORE.custom.findIndex(c => c.id === r.id);
+    if (i >= 0) STORE.custom[i] = r; else STORE.custom.push(r);
+    STORE.selected = r.id;
+    saveStore();
+    state = fresh(0); save();
+    RD = null; go("dashboard");
   };
 }
 
+// ---------------------------------------------------- workout editor -------
+function renderWorkoutEditor() {
+  const w = RD.workouts[edW];
+  $("day").textContent = "Edit workout";
+  $("sub").textContent = `${RD.name || "New routine"} · ${w.name || "Untitled"}`;
+  $("barwrap").style.display = "none";
+  $("main").innerHTML = `
+    <div class="card">
+      <label class="lbl">Workout name</label>
+      <input class="tin big" id="wname" value="${esc(w.name)}" placeholder="e.g. Push, Upper A, Chest day">
+    </div>
+
+    ${w.blocks.length ? "" : `<div class="card empty">No exercises yet.<br>Tap <b>+ Add exercise</b> to pick from the list or add your own.</div>`}
+    ${w.blocks.map((b, bi) => `
+    <div class="card eblock">
+      <div class="ehead">
+        <span class="tag" style="margin:0">${bi + 1}. ${b.length > 1 ? "Superset · alternate" : "Exercise"}</span>
+        <div class="mini">
+          <button data-bup="${bi}" ${bi === 0 ? "disabled" : ""} aria-label="Move up">↑</button>
+          <button data-bdown="${bi}" ${bi === w.blocks.length - 1 ? "disabled" : ""} aria-label="Move down">↓</button>
+          <button data-bdel="${bi}" aria-label="Delete">🗑</button>
+        </div>
+      </div>
+      ${b.map((e, ei) => `
+        <div class="eitem">
+          <div class="exname">${esc(e.n)}</div>
+          <div class="egrid">
+            <div><label class="lbl">Reps</label><input class="tin" data-b="${bi}" data-e="${ei}" data-f="r" value="${esc(e.r)}" placeholder="8–12"></div>
+            <div><label class="lbl">Sets</label><input class="tin" type="number" inputmode="numeric" min="1" max="10" data-b="${bi}" data-e="${ei}" data-f="sets" value="${e.sets ?? ""}" placeholder="${RD.sets}"></div>
+          </div>
+          <label class="lbl">Note</label>
+          <input class="tin" data-b="${bi}" data-e="${ei}" data-f="note" value="${esc(e.note || "")}" placeholder="e.g. To failure · rest 90 sec">
+          ${b.length > 1 ? `<button class="link" data-split="${bi}:${ei}">Remove from superset</button>` : ""}
+        </div>`).join("")}
+      ${b.length < 3 ? `<button class="link" data-super="${bi}">+ Superset with another exercise</button>` : ""}
+    </div>`).join("")}
+
+    <button class="primary addbtn" id="addEx">+ Add exercise</button>
+    <div class="hint">Leave Sets blank to use the routine default (${RD.sets}). Same exercise name = same "Last time" history.</div>
+    <div class="actions"><button class="secondary" id="wDone">Done</button></div>
+    <div class="msg bad" id="wMsg" style="text-align:center"></div>`;
+
+  $("wname").oninput = e => { w.name = e.target.value; };
+  qsa("input[data-f]").forEach(inp => inp.oninput = () => {
+    const ex = w.blocks[+inp.dataset.b][+inp.dataset.e];
+    if (inp.dataset.f === "sets") { const s = parseInt(inp.value, 10); if (s >= 1 && s <= 10) ex.sets = s; else delete ex.sets; }
+    else ex[inp.dataset.f] = inp.value;
+  });
+  const move = (arr, i, j) => { const [it] = arr.splice(i, 1); arr.splice(j, 0, it); };
+  qsa("[data-bup]").forEach(b => b.onclick = () => { const i = +b.dataset.bup; move(w.blocks, i, i - 1); render(); });
+  qsa("[data-bdown]").forEach(b => b.onclick = () => { const i = +b.dataset.bdown; move(w.blocks, i, i + 1); render(); });
+  qsa("[data-bdel]").forEach(b => b.onclick = () => {
+    const i = +b.dataset.bdel;
+    if (!twoTap("bdel-" + i, b, "Sure?")) return;
+    w.blocks.splice(i, 1); render();
+  });
+  qsa("[data-super]").forEach(b => b.onclick = () => { pickTarget = { block: +b.dataset.super }; pickQuery = ""; go("exPick"); });
+  qsa("[data-split]").forEach(b => b.onclick = () => {
+    const [bi, ei] = b.dataset.split.split(":").map(Number);
+    const [ex] = w.blocks[bi].splice(ei, 1);
+    w.blocks.splice(bi + 1, 0, [ex]); render();
+  });
+  $("addEx").onclick = () => { pickTarget = { block: null }; pickQuery = ""; go("exPick"); };
+  $("wDone").onclick = () => {
+    if (!w.name.trim()) { $("wMsg").textContent = "Give this workout a name."; return; }
+    w.name = w.name.trim();
+    w.blocks.forEach(b => b.forEach(e => { e.r = (e.r || "").trim() || "8–12"; e.note = (e.note || "").trim(); }));
+    go("routine");
+  };
+}
+
+// ---------------------------------------------------- exercise picker ------
+function libraryGroups() {
+  const groups = [];
+  if (STORE.exercises.length) groups.push(["My exercises", STORE.exercises.map(e => e.n)]);
+  Object.entries(EXERCISE_LIBRARY).forEach(([g, list]) => groups.push([g, list]));
+  return groups;
+}
+function exerciseExists(name) {
+  const n = name.trim().toLowerCase();
+  return libraryGroups().some(([, list]) => list.some(x => x.toLowerCase() === n));
+}
+function addPicked(name) {
+  const w = RD.workouts[edW];
+  if (pickTarget && pickTarget.block !== null && w.blocks[pickTarget.block]) {
+    const b = w.blocks[pickTarget.block];
+    b.push(x(name, b[0].r || "10–12", ""));
+  } else {
+    w.blocks.push([x(name, "8–12", "")]);
+  }
+  pickTarget = null; pickQuery = "";
+  go("workoutEdit");
+}
+function renderPicker() {
+  const w = RD.workouts[edW];
+  $("day").textContent = "Add exercise";
+  $("sub").textContent = pickTarget && pickTarget.block !== null && w.blocks[pickTarget.block]
+    ? `Superset with ${w.blocks[pickTarget.block][0].n}` : `To ${w.name}`;
+  $("barwrap").style.display = "none";
+  $("main").innerHTML = `
+    <input class="tin big" id="exSearch" type="search" placeholder="Search exercises" value="${esc(pickQuery)}" autocomplete="off">
+    <div class="card">
+      <button class="link" id="ownToggle" style="padding:0;font-weight:700;color:var(--accent)">+ Add your own exercise</button>
+      <div id="ownForm" hidden style="margin-top:12px">
+        <label class="lbl">Exercise name</label>
+        <input class="tin" id="ownName" placeholder="e.g. Landmine press">
+        <label class="lbl" style="margin-top:10px">Muscle group</label>
+        <select class="tin" id="ownGroup">${Object.keys(EXERCISE_LIBRARY).concat("Other").map(g => `<option>${esc(g)}</option>`).join("")}</select>
+        <button class="primary" id="ownAdd" style="width:100%;margin-top:12px">Add to workout</button>
+        <div class="msg bad" id="ownMsg"></div>
+      </div>
+    </div>
+    <div id="exList"></div>
+    <div class="actions"><button class="secondary" id="pickCancel">Cancel</button></div>`;
+
+  const inWorkout = new Set(w.blocks.flat().map(e => e.n.toLowerCase()));
+  const drawList = () => {
+    const q = pickQuery.trim().toLowerCase();
+    const groups = libraryGroups().map(([g, list]) => [g, list.filter(n => !q || n.toLowerCase().includes(q))]).filter(([, l]) => l.length);
+    $("exList").innerHTML = groups.length ? groups.map(([g, list]) => `
+      <div class="sec">${esc(g)}</div>
+      <div class="rows">${list.map(n => `
+        <button class="row exrow" data-ex="${esc(n)}"><span class="l">${esc(n)}</span><span class="r">${inWorkout.has(n.toLowerCase()) ? '<small style="color:var(--accent)">✓ in workout</small>' : "+"}</span></button>`).join("")}
+      </div>`).join("")
+      : `<div class="card empty">No match for "${esc(pickQuery)}".<br><button class="link" id="addAsOwn" style="color:var(--accent);font-weight:700">+ Add "${esc(pickQuery.trim())}" as your own exercise</button></div>`;
+    qsa("[data-ex]").forEach(b => b.onclick = () => addPicked(b.dataset.ex));
+    if ($("addAsOwn")) $("addAsOwn").onclick = () => { $("ownForm").hidden = false; $("ownName").value = pickQuery.trim(); $("ownName").focus(); };
+  };
+  drawList();
+  $("exSearch").oninput = e => { pickQuery = e.target.value; drawList(); };
+  $("ownToggle").onclick = () => { $("ownForm").hidden = !$("ownForm").hidden; if (!$("ownForm").hidden) $("ownName").focus(); };
+  $("ownAdd").onclick = () => {
+    const name = $("ownName").value.trim().replace(/\s+/g, " ");
+    if (!name) { $("ownMsg").textContent = "Type a name first."; return; }
+    if (!exerciseExists(name)) {
+      STORE.exercises.push({ n: name, g: $("ownGroup").value });
+      saveStore();
+    }
+    addPicked(name);
+  };
+  $("pickCancel").onclick = () => { pickTarget = null; pickQuery = ""; go("workoutEdit"); };
+}
+
+function updatePick() {
+  $("pick").innerHTML = SLOTS.map((s, i) =>
+    `<option value="${i}" ${i === state.slot ? "selected" : ""}>${esc(PLAN[s.w].name)}${s.d !== null ? ` (${DAY_SHORT[s.d]})` : ""}</option>`).join("");
+}
 function render() {
   Sync.show();
+  updatePick();
+  const editing = view === "routine" || view === "workoutEdit" || view === "exPick";
+  document.querySelector("footer").style.display = editing ? "none" : "";
   if (CONFIGURED && sb && !user && !skipLogin) return renderLogin();
+  if (view === "routine") return renderRoutineEditor();
+  if (view === "workoutEdit") return renderWorkoutEditor();
+  if (view === "exPick") return renderPicker();
   if (view === "dashboard") return renderDashboard();
   $("barwrap").style.display = "";
   const w = PLAN[state.day];
@@ -652,11 +1213,10 @@ function render() {
   $("bar").style.width = (doneCount / total * 100) + "%";
   $("undo").disabled = state.history.length === 0;
 
-  $("pick").innerHTML = PLAN.map((p, i) =>
-    `<option value="${i}" ${i === state.day ? "selected" : ""}>${esc(p.name)} (${esc(p.when.slice(0, 3))})</option>`).join("");
 
   if (state.queue.length === 0) {
-    const next = PLAN[(state.day + 1) % PLAN.length];
+    const nextSlot = (state.slot + 1) % SLOTS.length;
+    const next = PLAN[SLOTS[nextSlot].w];
     const logged = Sets.all().filter(r => r.session_id === state.session).length;
     $("sub").textContent = `All ${total} done`;
     $("main").innerHTML = `
@@ -664,7 +1224,7 @@ function render() {
         <div class="big">💪</div>
         <h2>${esc(w.name)} complete</h2>
         <p>${logged} sets logged</p>
-        <p style="margin-top:6px">Next up: <b>${esc(next.name)}</b> (${esc(next.when)})</p>
+        <p style="margin-top:6px">Next up: <b>${esc(next.name)}</b>${SLOTS[nextSlot].d !== null ? ` (${DAY_FULL[SLOTS[nextSlot].d]})` : ""}</p>
       </div>
       ${Backup.due() ? `<div class="nudge"><span>${Backup.last() ? "It's been over a week since your last backup." : "Back up your lifts so they survive a new phone."}</span><button class="primary" id="bkNudge">Back up</button></div>` : ""}
       <div class="actions">
@@ -673,7 +1233,7 @@ function render() {
       </div>`;
     $("dash").onclick = () => { view = "dashboard"; render(); window.scrollTo(0, 0); };
     if ($("bkNudge")) $("bkNudge").onclick = async () => { if (await Backup.save()) render(); };
-    $("nextDay").onclick = () => { state = fresh((state.day + 1) % PLAN.length); save(); render(); };
+    $("nextDay").onclick = () => { state = fresh(nextSlot); save(); render(); };
     return;
   }
 
@@ -681,7 +1241,8 @@ function render() {
   const block = w.blocks[idx];
   const isPair = block.length > 1;
   const wasSkipped = state.skipped.includes(idx);
-  $("sub").textContent = `${doneCount + 1} of ${total} · ${w.when}`;
+  const slotDay = SLOTS[state.slot] ? SLOTS[state.slot].d : null;
+  $("sub").textContent = `${doneCount + 1} of ${total}${slotDay !== null ? " · " + DAY_FULL[slotDay] : ""}`;
 
   const upNext = state.queue.length > 1 ? blockTitle(w.blocks[state.queue[1]]) : null;
 
@@ -690,7 +1251,7 @@ function render() {
       <span class="tag">${isPair ? "Superset · alternate" : "Straight sets"}</span>${wasSkipped ? '<span class="tag skipped">Skipped earlier</span>' : ""}
       ${block.map((e, ei) => {
         const last = lastTime(e.n, w.name);
-        const rows = Array.from({ length: SETS }, (_, s) => {
+        const rows = Array.from({ length: setsFor(e) }, (_, s) => {
           const d = state.draft[dkey(idx, ei, s + 1)] || {};
           const prev = last && last.sets.find(r => r.set_number === s + 1);
           return `
@@ -708,7 +1269,7 @@ function render() {
         return `
         <div class="ex">
           <div class="ex-name">${esc(e.n)}</div>
-          <div class="ex-reps">${SETS} sets × ${esc(e.r)} reps</div>
+          <div class="ex-reps">${setsFor(e)} set${setsFor(e) === 1 ? "" : "s"} × ${esc(e.r)} reps</div>
           ${e.note ? `<div class="ex-note">${esc(e.note)}</div>` : ""}
           <div class="last">${last
             ? `Last ${esc(w.name)} (${esc(prettyDate(last.date))}): <b>${last.sets.map(r => `${r.weight_lb ?? "–"} lb × ${r.reps ?? "–"}`).join(" · ")}</b>`
@@ -736,7 +1297,7 @@ function render() {
     const now = new Date().toISOString();
     const records = [];
     block.forEach((e, ei) => {
-      for (let s = 1; s <= SETS; s++) {
+      for (let s = 1; s <= setsFor(e); s++) {
         const d = state.draft[dkey(idx, ei, s)] || {};
         const wt = d.w === undefined || d.w === "" ? null : Number(d.w);
         const rp = d.r === undefined || d.r === "" ? null : Math.round(Number(d.r));
@@ -748,7 +1309,7 @@ function render() {
       }
     });
     snapshot({ logged: records.map(r => r.id) });
-    block.forEach((_, ei) => { for (let s = 1; s <= SETS; s++) delete state.draft[dkey(idx, ei, s)]; });
+    block.forEach((e, ei) => { for (let s = 1; s <= setsFor(e); s++) delete state.draft[dkey(idx, ei, s)]; });
     state.queue.shift();
     save();
     if (records.length) Sets.add(records);
@@ -775,7 +1336,7 @@ $("undo").onclick = () => {
 };
 $("restart").onclick = () => {
   if (!confirmRestart()) return;
-  state = fresh(state.day); save(); render();
+  state = fresh(state.slot); save(); render();
 };
 $("pick").onchange = e => { view = "workout"; state = fresh(+e.target.value); save(); render(); };
 
@@ -788,6 +1349,7 @@ function confirmRestart() {
   return false;
 }
 
+$("dashLink").onclick = () => { view = "dashboard"; render(); window.scrollTo(0, 0); };
 $("export").onclick = () => {
   const log = Sets.all();
   const cols = ["id", "session_id", "logged_at", "date", "workout", "exercise", "set_number", "weight_lb", "reps"];
@@ -850,7 +1412,14 @@ const Backup = {
     const newB = (data.bodyweight || []).filter(okBw).filter(r => !haveB.has(r.id));
     if (newS.length) Sets.add(newS);
     if (newB.length) Bodyweight.add(newB);
-    if (!lsGet(PLAN_KEY, null) && validPlan(data.plan)) { lsSet(PLAN_KEY, data.plan); setPlan(data.plan); }
+    const incoming = normalizeStore(data.plan);
+    if (incoming) {   // add their custom routines/exercises; keep anything already here
+      const haveR = new Set(STORE.custom.map(r => r.id)), haveE = new Set(STORE.exercises.map(e => e.n.toLowerCase()));
+      STORE.custom.push(...incoming.custom.filter(r => !haveR.has(r.id)));
+      STORE.exercises.push(...incoming.exercises.filter(e => !haveE.has(e.n.toLowerCase())));
+      if (!lsGet(PLAN_KEY, null)) STORE.selected = incoming.selected;
+      saveStore();
+    }
     return { sets: newS.length, bodyweight: newB.length,
              skipped: data.sets.length + (data.bodyweight || []).length - newS.length - newB.length };
   },

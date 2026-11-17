@@ -79,19 +79,8 @@ The app signs you in with a 6-digit code sent to your email. A code works inside
 ### Step 6: Lock it to just you (recommended)
 Once you've signed in once, **Authentication → Sign In / Providers → turn off "Allow new users to sign up."** Your account keeps working, and nobody else can create one on your project.
 
-### Step 7 (optional): Move the plan into the database
-1. In the app: **Dashboard → Save plan to database**.
-2. From then on, edit exercises in **Table Editor → user_plan → `plan`**. It's JSON shaped like this:
-   ```json
-   [{ "name": "Upper A", "when": "Monday",
-      "blocks": [ [ { "n": "Flat barbell bench", "r": "6–10", "note": "Stop 1 rep shy" } ],
-                  [ { "n": "Hammer curls", "r": "10–12", "note": "" },
-                    { "n": "Rope pushdowns", "r": "10–12", "note": "" } ] ] }]
-   ```
-   Each inner list is one screen in the app. Two exercises in one list makes a superset.
-3. The app picks up changes the next time it's opened.
-
-> Keep exercise names exactly the same when you edit. "Last time" and the dashboard match on the name, so renaming *Flat barbell bench* starts that exercise's history over.
+### Step 7: Your routines sync automatically
+Your routines, your own exercises, and which routine is selected are saved to the `user_plan` table as soon as you sign in, and again every time you change them. Sign in on another device and they show up there.
 
 ---
 
@@ -164,6 +153,26 @@ order by date;
 | "Signups not allowed" on first sign-in | You did Step 6 before Step 5. Turn sign-ups back on, sign in, then turn them off again. |
 | Free project paused | Supabase pauses free projects after ~1 week with no activity. Click **Restore** in the dashboard. Your data is kept, and the app keeps saving on the phone meanwhile. |
 
-## Changing the plan without the database
+## Routines
 
-Edit `DEFAULT_PLAN` near the top of the script in `index.html`. Once a plan has been saved to the database (Step 7), the database copy wins.
+Open **📊 Dashboard** (footer). The **Routine** section lists every routine.
+
+**Picking a routine:** tap one (Upper / Lower, Push / Pull, Push / Pull / Legs, Bro split, Full body, or one you made), then **Confirm**. The selected routine gets a green outline and a **✓ Selected** badge, and the workout screen switches to it, starting at its first day.
+
+**+ Create routine:**
+1. Name the routine.
+2. **+ Add workout**, name it (e.g. "Push"), then **+ Add exercise**.
+   - Pick from the standard list (grouped by muscle, with search), or **+ Add your own exercise**. Your own exercises are saved under **My exercises** for next time.
+   - Set reps, sets (blank = routine default), and a note for each exercise. **+ Superset** pairs exercises on one screen.
+3. Back on the routine screen, tap the **days** for each workout. A day belongs to one workout, so tapping a day another workout has moves it over. A workout can have more than one day (e.g. Push on Mon & Thu).
+4. Set the default **sets per exercise**, then **Save routine**. It's saved and selected.
+
+Built-in routines can't be changed directly. Tap **Copy & customize** to make your own editable copy. Your routines have **Edit** and **Delete** (tap twice).
+
+**How days work:** the app goes through the routine's days in week order (Mon → Sun), doing the workout assigned to each. If you miss a day, it doesn't skip ahead; it picks up with the next workout in the order.
+
+> Keep workout and exercise names the same to keep your "Last time" history. It matches on workout name + exercise name.
+
+## Changing the starter templates
+
+The built-in routines live in `TEMPLATES` (exercises) and `DEFAULT_DAYS` (days) near the top of the script in `index.html`. The standard exercise list is `EXERCISE_LIBRARY`.
