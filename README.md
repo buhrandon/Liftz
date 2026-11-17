@@ -153,6 +153,15 @@ order by date;
 | Forgot password | In Supabase → **Authentication → Users**, delete the user, then sign up again. Their lifts stay in the `sets` table but won't be linked to the new account. |
 | Free project paused | Supabase pauses free projects after ~1 week with no activity. Click **Restore** in the dashboard. Your data is kept, and the app keeps saving on the phone meanwhile. |
 
+## During a workout
+
+- **Rest timer:** starts when you type a set's reps or tap **Finish**, using the rest time in the exercise note ("rest 90 sec", "rest 2–3 min" → 2:00). No rest in the note means 1:30. In a superset it starts after the last exercise of each round. **+30s** and **Skip** are on the bar. When rest is up it flashes, beeps, and vibrates where the phone allows. iPhones don't support web vibration, and the silent switch mutes the beep.
+- **Go up in weight:** if you hit the top of the rep range on every set last time (same weight on each set), the exercise shows "Try 140 lb today" and the weight box hints the new number. It suggests +5 lb. For bodyweight exercises it suggests adding weight.
+
+## Progress charts
+
+On the Dashboard, tap any exercise under **Best sets** to see its strength trend (estimated 1-rep max of your best set each workout), your last top set, and every workout logged. Tap the chart to see a point's details. Log bodyweight on at least two days and a bodyweight chart appears under it.
+
 ## Routines
 
 Open **📊 Dashboard** (footer). The **Routine** section lists every routine.
@@ -168,6 +177,8 @@ Open **📊 Dashboard** (footer). The **Routine** section lists every routine.
 4. Set the default **sets per exercise**, then **Save routine**. It's saved and selected.
 
 Built-in routines can't be changed directly. Tap **Copy & customize** to make your own editable copy. Your routines have **Edit** and **Delete** (tap twice).
+
+**Switching keeps your spot:** each routine remembers where you were, so switching from Upper / Lower to Bro split and back picks up on the same day and exercise. If you edit a workout, that workout starts fresh.
 
 **How days work:** the app goes through the routine's days in week order (Mon → Sun), doing the workout assigned to each. If you miss a day, it doesn't skip ahead; it picks up with the next workout in the order.
 

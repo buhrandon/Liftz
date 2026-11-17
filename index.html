@@ -207,6 +207,33 @@
   .acct-item { display: block; width: 100%; text-align: left; background: none; color: var(--text); padding: 12px 10px; font-size: 15px;
     font-weight: 600; border-radius: 10px; }
   .acct-item.danger { color: #ff6b6b; }
+  .restbar { position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 15;
+    background: #11141a; border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px 10px; box-shadow: 0 10px 30px rgba(0,0,0,.55); }
+  .restbar.done { border-color: var(--accent); background: #0f2a1b; animation: restflash 1s ease-in-out 3; }
+  @keyframes restflash { 50% { background: #1b5c37; } }
+  .rest-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .rest-label { font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .rest-time { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .rest-btns { display: flex; gap: 8px; }
+  .rest-btns button { background: var(--card); color: var(--text); border: 1px solid var(--line); padding: 10px 14px; font-size: 15px; }
+  .rest-track { height: 4px; background: var(--line); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .rest-track > div { height: 100%; background: var(--accent); width: 0; transition: width .25s linear; }
+  body.resting main { padding-bottom: 110px; }
+  .upgo { margin-top: 6px; font-size: 14px; color: var(--accent); font-weight: 600; }
+  .upgo b { color: var(--text); }
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
+  .chart .grid { stroke: #2a2e38; stroke-width: 1; }
+  .chart .axis { fill: var(--muted); font-size: 11px; }
+  .chart .endlbl { fill: var(--text); font-size: 12px; font-weight: 700; }
+  .chart .xhair { stroke: #5b616e; stroke-width: 1; }
+  .chart .tip { position: absolute; top: 0; width: 150px; background: #11141a; border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 10px; font-size: 12px; line-height: 1.45; color: var(--muted); pointer-events: none; }
+  .chart .tip b { color: var(--text); }
+  .charthead { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .tile .unit { font-size: 16px; color: var(--muted); font-weight: 700; }
+  .exlink { width: 100%; background: none; color: var(--text); border-radius: 0; font-weight: 400; text-align: left; }
+  .exlink .r::after { content: " ›"; color: var(--muted); }
   .small-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: 4px; }
 </style>
 </head>
@@ -245,6 +272,13 @@
   <button class="install-mini" id="installMini" aria-label="Install Lift" title="Install Lift"><img src="icon-192.png" alt=""></button>
 </div>
 <div id="sheetHost"></div>
+<div class="restbar" id="restBar" hidden>
+  <div class="rest-top">
+    <div><div class="rest-label" id="restLabel">Rest</div><div class="rest-time" id="restTime">1:30</div></div>
+    <div class="rest-btns"><button id="restAdd">+30s</button><button id="restSkip">Skip</button></div>
+  </div>
+  <div class="rest-track"><div id="restFill"></div></div>
+</div>
 <footer>
   <button class="link" id="undo">↩ Undo</button>
   <select id="pick" aria-label="Change workout"></select>
@@ -648,9 +682,11 @@ function saveStore() {
 }
 function selectRoutine(id) {
   if (STORE.selected === id || !routineIn(STORE, id)) return;
+  savePosition();                      // remember where you were in the old routine
   STORE.selected = id;
   saveStore();
-  state = fresh(0); save();
+  state = restorePosition(id) || fresh(0); save();
+  Rest.stop();
 }
 
 // Load Supabase only when keys are set, without blocking the app from opening
@@ -882,16 +918,16 @@ function renderDashboard() {
         Latest <b>${latest.weight_lb} lb</b> (${esc(shortDate(latest.date))})
         ${weekRef ? ` · 7 days: <b>${delta(latest.weight_lb, weekRef.weight_lb)}</b>` : ""}
         ${bwSorted.length > 1 ? ` · since ${esc(shortDate(bwSorted[0].date))}: <b>${delta(latest.weight_lb, bwSorted[0].weight_lb)}</b>` : ""}
-      </div>` : `<div class="last" style="margin-top:12px">Log your morning weight to track it next to your lifts.</div>`}
+      </div>${bodyweightChartHtml(bwSorted)}` : `<div class="last" style="margin-top:12px">Log your morning weight to track it next to your lifts.</div>`}
     </div>
 
     ${log.length ? `
-    <div class="sec">Best sets</div>
+    <div class="sec">Best sets <span style="text-transform:none;letter-spacing:0;font-weight:500">· tap for your trend</span></div>
     <div class="rows">${bests.map(b => `
-      <div class="row">
-        <div class="l">${esc(b.name)}<small>Last: ${b.last.weight_lb} × ${b.last.reps} · ${esc(shortDate(b.last.date))}</small></div>
-        <div class="r">${b.trend} ${b.best.weight_lb} × ${b.best.reps}<small>${esc(shortDate(b.best.date))}</small></div>
-      </div>`).join("")}
+      <button class="row exlink" data-exd="${esc(b.name)}">
+        <span class="l">${esc(b.name)}<small>Last: ${b.last.weight_lb} × ${b.last.reps} · ${esc(shortDate(b.last.date))}</small></span>
+        <span class="r">${b.trend} ${b.best.weight_lb} × ${b.best.reps}<small>${esc(shortDate(b.best.date))}</small></span>
+      </button>`).join("")}
     </div>
 
     <div class="sec">Recent workouts</div>
@@ -921,6 +957,8 @@ function renderDashboard() {
   };
   if ($("signOut")) $("signOut").onclick = () => signOutNow();
   wireRoutineSection();
+  wireChart("bwChart");
+  document.querySelectorAll("[data-exd]").forEach(b => b.onclick = () => { exView = b.dataset.exd; view = "exercise"; render(); window.scrollTo(0, 0); });
 }
 
 // =============================================================================
@@ -961,7 +999,7 @@ function routineSectionHtml() {
         </button>
         ${ask ? `
         <div class="rconfirm">
-          <span>Switch to <b>${esc(r.name)}</b>? Today's workout starts over.</span>
+          <span>Switch to <b>${esc(r.name)}</b>? ${hasPosition(r.id) ? "You'll pick up where you left off." : "You'll start on its first day."} Your spot in ${esc(PLANCFG.name)} is saved.</span>
           <div class="row2"><button class="primary" data-rok="${esc(r.id)}">Confirm</button><button class="secondary" data-rno="1">Cancel</button></div>
         </div>` : ""}
         <div class="rlinks">${r.builtin
@@ -989,6 +1027,7 @@ function wireRoutineSection() {
     const id = b.dataset.rdel;
     if (!twoTap("rdel-" + id, b, "Tap again to delete")) return;
     STORE.custom = STORE.custom.filter(r => r.id !== id);
+    { const m = lsGet(POS_KEY, {}); delete m[id]; lsSet(POS_KEY, m); }
     const wasSelected = STORE.selected === id;
     if (wasSelected) STORE.selected = "default:upper-lower";
     saveStore();
@@ -1093,9 +1132,10 @@ function renderRoutineEditor() {
     if (!r) return msg("Something's missing. Check each workout has a name and exercises.");
     const i = STORE.custom.findIndex(c => c.id === r.id);
     if (i >= 0) STORE.custom[i] = r; else STORE.custom.push(r);
+    if (STORE.selected !== r.id) savePosition();
     STORE.selected = r.id;
     saveStore();
-    state = fresh(0); save();
+    state = restorePosition(r.id) || fresh(0); save();
     RD = null; go("dashboard");
   };
 }
@@ -1243,6 +1283,249 @@ function renderPicker() {
   $("pickCancel").onclick = () => { pickTarget = null; pickQuery = ""; go("workoutEdit"); };
 }
 
+// =============================================================================
+// REST TIMER
+// Starts when you log a set's reps or tap Finish. Uses the rest time in the
+// exercise note ("rest 90 sec", "rest 2–3 min" → the low end); 90 sec if none.
+// Beeps + vibrates (where the phone allows) and flashes when rest is up.
+// =============================================================================
+const REST_KEY = "lift-rest";
+function parseRest(text) {
+  const m = /rest\s+(\d+)\s*(?:[–-]\s*(\d+))?\s*(sec|s|min|m)\b/i.exec(text || "");
+  if (!m) return null;
+  const mult = /^m/i.test(m[3]) ? 60 : 1;
+  return +m[1] * mult;
+}
+function restForBlock(block) {
+  const found = block.map(e => parseRest(e.note)).filter(Boolean);
+  return found.length ? Math.max(...found) : 90;
+}
+const Rest = {
+  timer: null, audio: null,
+  get() { return lsGet(REST_KEY, null); },
+  start(secs, label) {
+    lsSet(REST_KEY, { end: Date.now() + secs * 1000, total: secs, label: label || "" });
+    this.tick(); this.loop();
+  },
+  add(secs) {
+    const r = this.get(); if (!r) return;
+    const left = Math.max(0, r.end - Date.now());
+    r.end = Date.now() + left + secs * 1000; r.total = Math.max(r.total, Math.ceil((r.end - Date.now()) / 1000));
+    r.done = false; lsSet(REST_KEY, r); this.tick(); this.loop();
+  },
+  stop() { lsSet(REST_KEY, null); clearInterval(this.timer); this.timer = null; this.tick(); },
+  loop() { if (!this.timer) this.timer = setInterval(() => this.tick(), 250); },
+  tick() {
+    const bar = $("restBar"); if (!bar) return;
+    const r = this.get();
+    document.body.classList.toggle("resting", !!r);
+    if (!r) { bar.hidden = true; clearInterval(this.timer); this.timer = null; return; }
+    bar.hidden = false;
+    const left = Math.max(0, Math.ceil((r.end - Date.now()) / 1000));
+    if (left === 0 && !r.done) { r.done = true; r.doneAt = Date.now(); lsSet(REST_KEY, r); this.alert(); }
+    if (r.done && Date.now() - (r.doneAt || 0) > 15000) return this.stop();   // auto-hide 15 s after
+    bar.classList.toggle("done", !!r.done);
+    $("restTime").textContent = r.done ? "Go!" : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+    $("restLabel").textContent = r.done ? "Rest's up. Next set." : `Rest${r.label ? " · " + r.label : ""}`;
+    $("restFill").style.width = r.done ? "100%" : `${100 - (left / r.total) * 100}%`;
+  },
+  // Phones only allow sound after a tap; unlock it on the first tap anywhere
+  unlockAudio() {
+    try {
+      if (!this.audio) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) this.audio = new AC(); }
+      if (this.audio && this.audio.state === "suspended") this.audio.resume();
+    } catch (e) {}
+  },
+  alert() {
+    try { if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 400]); } catch (e) {}
+    try {
+      const a = this.audio; if (!a) return;
+      [0, 0.25, 0.5].forEach((t, i) => {
+        const o = a.createOscillator(), g = a.createGain();
+        o.type = "sine"; o.frequency.value = i === 2 ? 1175 : 880;
+        g.gain.setValueAtTime(0.0001, a.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.35, a.currentTime + t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + t + 0.2);
+        o.connect(g).connect(a.destination); o.start(a.currentTime + t); o.stop(a.currentTime + t + 0.22);
+      });
+    } catch (e) {}
+  },
+};
+document.addEventListener("pointerdown", () => Rest.unlockAudio(), { passive: true });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") Rest.tick(); });
+
+// =============================================================================
+// "GO UP IN WEIGHT"
+// Hit the top of the rep range on every set last time → suggest +5 lb.
+// =============================================================================
+const topOfRange = r => { const n = String(r || "").match(/\d+/g); return n ? Math.max(...n.map(Number)) : null; };
+function progressionFor(e, last) {
+  if (!last) return null;
+  const top = topOfRange(e.r), need = setsFor(e);
+  const sets = last.sets.filter(s => s.reps != null);
+  if (!top || sets.length < need) return null;
+  if (!sets.slice(0, need).every(s => s.reps >= top)) return null;
+  const ws = sets.slice(0, need).map(s => s.weight_lb || 0);
+  const heaviest = Math.max(...ws);
+  if (heaviest <= 0) return { bodyweight: true, top };
+  if (!ws.every(w => w === heaviest)) return null;   // only when every set was at the same weight
+  return { weight: Math.round((heaviest + 5) * 100) / 100, from: heaviest, top };
+}
+
+// =============================================================================
+// CHARTS (single-series line: strength trend, bodyweight)
+// 2px line, 10% area wash, end dot with surface ring, end label,
+// tap/hover crosshair + tooltip. Color validated for the dark card surface.
+// =============================================================================
+const CHART_LINE = "#2aab63";
+function niceTicks(min, max, count = 4) {
+  if (min === max) { min -= 5; max += 5; }
+  const span = max - min, raw = span / count;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * pow).find(s => s >= raw) || 10 * pow;
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step;
+  const ticks = []; for (let v = lo; v <= hi + step / 2; v += step) ticks.push(Math.round(v * 100) / 100);
+  return ticks;
+}
+function lineChartHtml(id, pts, opts = {}) {
+  // pts: [{ x: Date, y: number, tip: html, label }]
+  const W = 340, H = 180, L = 40, R = 52, T = 14, B = 26;
+  const xs = pts.map(p => +p.x), ys = pts.map(p => p.y);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const ticks = niceTicks(Math.min(...ys), Math.max(...ys));
+  const y0 = ticks[0], y1 = ticks[ticks.length - 1];
+  const sx = v => x1 === x0 ? (L + W - R) / 2 : L + ((v - x0) / (x1 - x0)) * (W - L - R);
+  const sy = v => T + (1 - (v - y0) / (y1 - y0 || 1)) * (H - T - B);
+  const P = pts.map(p => [sx(+p.x), sy(p.y)]);
+  const line = P.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+  const area = `${line} L${P[P.length - 1][0].toFixed(1)} ${H - B} L${P[0][0].toFixed(1)} ${H - B} Z`;
+  const last = P[P.length - 1], fmt = opts.fmt || (v => String(v));
+  const dfmt = d => d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return `
+    <div class="chart" id="${id}" data-pts='${esc(JSON.stringify(P))}'>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.aria || "Trend chart")}">
+        ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${sy(t)}" y2="${sy(t)}" class="grid"/>
+          <text x="${L - 6}" y="${sy(t) + 4}" class="axis" text-anchor="end">${fmt(t)}</text>`).join("")}
+        <text x="${L}" y="${H - 6}" class="axis">${esc(dfmt(new Date(x0)))}</text>
+        ${x1 !== x0 ? `<text x="${W - R}" y="${H - 6}" class="axis" text-anchor="end">${esc(dfmt(new Date(x1)))}</text>` : ""}
+        <path d="${area}" fill="${CHART_LINE}" opacity="0.1"/>
+        <path d="${line}" fill="none" stroke="${CHART_LINE}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <line class="xhair" x1="0" x2="0" y1="${T}" y2="${H - B}" visibility="hidden"/>
+        <circle class="hdot" r="5" fill="${CHART_LINE}" stroke="var(--card)" stroke-width="2" visibility="hidden"/>
+        <circle cx="${last[0]}" cy="${last[1]}" r="4.5" fill="${CHART_LINE}" stroke="var(--card)" stroke-width="2"/>
+        <text x="${last[0] + 8}" y="${last[1] + 4}" class="endlbl">${esc(opts.endLabel || fmt(ys[ys.length - 1]))}</text>
+        <rect class="hit" x="${L - 10}" y="0" width="${W - L - R + 20}" height="${H}" fill="transparent"/>
+      </svg>
+      <div class="tip" hidden></div>
+      <template>${pts.map(p => `<div>${p.tip}</div>`).join("")}</template>
+    </div>`;
+}
+function wireChart(id) {
+  const el = $(id); if (!el) return;
+  const P = JSON.parse(el.dataset.pts), tips = [...el.querySelector("template").content.children].map(d => d.innerHTML);
+  const svg = el.querySelector("svg"), hit = el.querySelector(".hit"), x = el.querySelector(".xhair"), dot = el.querySelector(".hdot"), tip = el.querySelector(".tip");
+  const show = ev => {
+    const box = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+    const px = box.width ? ((ev.clientX - box.left) / box.width) * vb.width : P[P.length - 1][0];
+    let i = 0; P.forEach((p, k) => { if (Math.abs(p[0] - px) < Math.abs(P[i][0] - px)) i = k; });
+    const [cx, cy] = P[i];
+    x.setAttribute("x1", cx); x.setAttribute("x2", cx); x.setAttribute("visibility", "visible");
+    dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("visibility", "visible");
+    tip.innerHTML = tips[i]; tip.hidden = false;
+    const left = box.width ? (cx / vb.width) * box.width : 0;
+    tip.style.left = Math.max(0, Math.min(left - 70, (box.width || 300) - 150)) + "px";
+  };
+  const hide = () => { x.setAttribute("visibility", "hidden"); dot.setAttribute("visibility", "hidden"); tip.hidden = true; };
+  hit.addEventListener("pointermove", show);
+  hit.addEventListener("pointerdown", show);
+  hit.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") hide(); });
+  el.showPoint = i => show({ clientX: 0, _i: i });   // used by tests
+}
+
+// Strength trend for one exercise: best set of each workout, as estimated 1-rep max
+let exView = null;
+function exerciseSessions(name) {
+  const rows = Sets.all().filter(r => r.exercise === name && r.weight_lb != null && r.reps != null);
+  const by = new Map();
+  rows.forEach(r => {
+    const s = by.get(r.session_id) || { date: r.date, workout: r.workout, sets: [] };
+    s.sets.push(r); by.set(r.session_id, s);
+  });
+  return [...by.values()].map(s => {
+    const best = s.sets.reduce((a, b) => e1rm(b) > e1rm(a) ? b : a);
+    return { ...s, best, est: Math.round(e1rm(best)) };
+  }).sort((a, b) => a.date.localeCompare(b.date));
+}
+function renderExercise() {
+  const name = exView;
+  const ss = exerciseSessions(name);
+  $("day").textContent = name;
+  $("sub").textContent = "Strength trend";
+  $("barwrap").style.display = "none";
+  const allTime = ss.length ? ss.reduce((a, b) => b.est > a.est ? b : a) : null;
+  const first = ss[0], latest = ss[ss.length - 1];
+  const change = ss.length > 1 ? latest.est - first.est : 0;
+  $("main").innerHTML = `
+    ${ss.length ? `
+    <div class="tiles">
+      <div class="tile"><div class="num">${latest.best.weight_lb}<span class="unit"> × ${latest.best.reps}</span></div><div class="lbl">Last top set</div></div>
+      <div class="tile"><div class="num">${allTime.est}</div><div class="lbl">Best est. 1RM (lb)</div></div>
+      <div class="tile"><div class="num">${ss.length > 1 ? (change > 0 ? "+" : "") + change : "–"}</div><div class="lbl">Change (lb)</div></div>
+    </div>` : ""}
+    <div class="card">
+      <div class="charthead">Estimated 1-rep max, best set each workout</div>
+      ${ss.length >= 2
+        ? lineChartHtml("exChart", ss.map(s => ({ x: new Date(s.date + "T00:00:00"), y: s.est,
+            tip: `<b>${esc(shortDate(s.date))}</b> · ${esc(s.workout)}<br>Top set ${s.best.weight_lb} × ${s.best.reps}<br>Est. 1RM ${s.est} lb` })),
+            { fmt: v => String(Math.round(v)), endLabel: `${latest.est} lb`, aria: `Estimated one-rep max for ${name} over time` })
+        : `<div class="empty">Log ${esc(name)} in ${ss.length ? "one more workout" : "two workouts"} to see your trend.</div>`}
+      <div class="hint" style="padding:8px 0 0">Est. 1RM = weight × (1 + reps ÷ 30). It lets sets with different reps be compared.</div>
+    </div>
+    ${ss.length ? `
+    <div class="sec">Every workout</div>
+    <div class="rows">${ss.slice().reverse().map(s => `
+      <div class="row">
+        <div class="l">${esc(prettyDate(s.date))}<small>${esc(s.workout)} · ${s.sets.sort((a, b) => a.set_number - b.set_number).map(r => `${r.weight_lb}×${r.reps}`).join(", ")}</small></div>
+        <div class="r">${s.est}<small>est. 1RM</small></div>
+      </div>`).join("")}
+    </div>` : ""}
+    <div class="actions"><button class="secondary" id="exBack">← Dashboard</button></div>`;
+  wireChart("exChart");
+  $("exBack").onclick = () => { exView = null; view = "dashboard"; render(); window.scrollTo(0, 0); };
+}
+function bodyweightChartHtml(bwSorted) {
+  const byDay = new Map(); bwSorted.forEach(r => byDay.set(r.date, r));
+  const pts = [...byDay.values()];
+  if (pts.length < 2) return "";
+  return `<div class="charthead" style="margin-top:14px">Bodyweight (lb)</div>` +
+    lineChartHtml("bwChart", pts.map(r => ({ x: new Date(r.date + "T00:00:00"), y: Number(r.weight_lb),
+      tip: `<b>${esc(shortDate(r.date))}</b><br>${r.weight_lb} lb` })),
+      { fmt: v => String(Math.round(v * 10) / 10), endLabel: `${pts[pts.length - 1].weight_lb} lb`, aria: "Bodyweight over time" });
+}
+
+// =============================================================================
+// RESUME YOUR SPOT PER ROUTINE
+// Switching routines saves where you were; switching back picks up there.
+// =============================================================================
+const POS_KEY = "lift-routine-pos";
+const workoutSig = (r, slot) => { const s = slotsOf(r)[slot]; return s ? JSON.stringify(r.workouts[s.w]) : ""; };
+function savePosition() {
+  if (!state) return;
+  const m = lsGet(POS_KEY, {});
+  m[STORE.selected] = { state, sig: workoutSig(PLANCFG, state.slot) };
+  lsSet(POS_KEY, m);
+}
+function restorePosition(id) {
+  const saved = lsGet(POS_KEY, {})[id];
+  const r = routineIn(STORE, id);
+  if (!saved || !r) return null;
+  const s = saved.state, slots = slotsOf(r);
+  const ok = slots[s.slot] && slots[s.slot].w === s.day && saved.sig === workoutSig(r, s.slot) &&
+    Array.isArray(s.queue) && s.queue.every(i => i < r.workouts[s.day].blocks.length);
+  return ok ? s : null;
+}
+const hasPosition = id => !!lsGet(POS_KEY, {})[id];
+
 function updatePick() {
   $("pick").innerHTML = SLOTS.map((s, i) =>
     `<option value="${i}" ${i === state.slot ? "selected" : ""}>${esc(PLAN[s.w].name)}${s.d !== null ? ` (${DAY_SHORT[s.d]})` : ""}</option>`).join("");
@@ -1257,6 +1540,7 @@ function render() {
   if (view === "workoutEdit") return renderWorkoutEditor();
   if (view === "exPick") return renderPicker();
   if (view === "dashboard") return renderDashboard();
+  if (view === "exercise" && exView) return renderExercise();
   $("barwrap").style.display = "";
   const w = PLAN[state.day];
 
@@ -1303,6 +1587,7 @@ function render() {
       <span class="tag">${isPair ? "Superset · alternate" : "Straight sets"}</span>${wasSkipped ? '<span class="tag skipped">Skipped earlier</span>' : ""}
       ${block.map((e, ei) => {
         const last = lastTime(e.n, w.name);
+        const up = progressionFor(e, last);
         const rows = Array.from({ length: setsFor(e) }, (_, s) => {
           const d = state.draft[dkey(idx, ei, s + 1)] || {};
           const prev = last && last.sets.find(r => r.set_number === s + 1);
@@ -1311,7 +1596,7 @@ function render() {
               <div class="set-label">Set ${s + 1}</div>
               <div class="field"><input type="number" inputmode="decimal" step="any" min="0"
                 data-k="${dkey(idx, ei, s + 1)}" data-f="w" value="${esc(d.w ?? "")}"
-                placeholder="${prev && prev.weight_lb != null ? prev.weight_lb : "0"}"><span>lb</span></div>
+                placeholder="${up && up.weight ? up.weight : prev && prev.weight_lb != null ? prev.weight_lb : "0"}"><span>lb</span></div>
               <div class="x">×</div>
               <div class="field"><input type="number" inputmode="numeric" step="1" min="0"
                 data-k="${dkey(idx, ei, s + 1)}" data-f="r" value="${esc(d.r ?? "")}"
@@ -1326,6 +1611,9 @@ function render() {
           <div class="last">${last
             ? `Last ${esc(w.name)} (${esc(prettyDate(last.date))}): <b>${last.sets.map(r => `${r.weight_lb ?? "–"} lb × ${r.reps ?? "–"}`).join(" · ")}</b>`
             : `Last ${esc(w.name)}: <b>nothing logged yet</b>`}</div>
+          ${up ? `<div class="upgo">⬆ ${up.weight
+            ? `You hit ${up.top} on every set at ${up.from} lb. Try <b>${up.weight} lb</b> today.`
+            : `You hit ${up.top}+ on every set. Add weight (belt, vest, dumbbell) or slow the reps down.`}</div>` : ""}
           <div class="sets">${rows}</div>
         </div>`;
       }).join("")}
@@ -1342,6 +1630,12 @@ function render() {
       const k = inp.dataset.k;
       state.draft[k] = { ...(state.draft[k] || {}), [inp.dataset.f]: inp.value };
       save();
+    };
+    // Logging a set's reps = that set is done → start the rest timer
+    // (in a superset, only after the last exercise of the round)
+    if (inp.dataset.f === "r") inp.onchange = () => {
+      const ei = +inp.dataset.k.split("|")[1];
+      if (inp.value !== "" && ei === block.length - 1) Rest.start(restForBlock(block), block.map(e => e.n).join(" + "));
     };
   });
 
@@ -1365,6 +1659,7 @@ function render() {
     state.queue.shift();
     save();
     if (records.length) Sets.add(records);
+    if (state.queue.length) Rest.start(restForBlock(block), "before " + blockTitle(w.blocks[state.queue[0]])); else Rest.stop();
     render(); window.scrollTo(0, 0);
   };
   $("skip").onclick = () => {
@@ -1510,8 +1805,12 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 }
 
 // ------------------------------------------------------------- start --------
+$("restAdd").onclick = () => Rest.add(30);
+$("restSkip").onclick = () => Rest.stop();
+
 state = load();
 render();
+Rest.tick(); if (Rest.get()) Rest.loop();
 initDb();
 Install.refresh();
 </script>
