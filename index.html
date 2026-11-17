@@ -1584,9 +1584,9 @@ const Install = {
   standalone: () => (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true,
   ios: () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
   available() { return !this.standalone() && (!!this.prompt || this.ios()); },
-  // Starts as a small square icon. Tap it to open the full banner; × collapses it again.
+  // Starts open. × collapses it to a small square icon; tapping the square opens it again.
   refresh() {
-    const avail = this.available(), collapsed = !lsGet(this.KEY, false);
+    const avail = this.available(), collapsed = !lsGet(this.KEY, true);
     $("install").hidden = !avail || collapsed;
     $("installMiniWrap").hidden = !avail || !collapsed;
   },
