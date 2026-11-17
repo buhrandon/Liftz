@@ -135,12 +135,6 @@
   .pointer { position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); font-size: 34px; z-index: 11;
     animation: bob 1s ease-in-out infinite; }
   @keyframes bob { 50% { transform: translate(-50%, -8px); } }
-  .backup .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-  .backup .row2 button { padding: 14px 10px; font-size: 16px; }
-  .nudge { background: rgba(245,165,36,.1); border: 1px solid rgba(245,165,36,.35); border-radius: 14px;
-    padding: 12px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px; }
-  .nudge span { flex: 1; }
-  .nudge button { padding: 10px 14px; font-size: 15px; }
   .tgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .tpl { text-align: left; background: var(--card); color: var(--text); border: 1px solid var(--line);
     border-radius: 14px; padding: 14px 12px; font-size: 15px; font-weight: 700; }
@@ -255,7 +249,6 @@
   <button class="link" id="undo">↩ Undo</button>
   <select id="pick" aria-label="Change workout"></select>
   <button class="link" id="restart">Restart day</button>
-  <button class="link" id="export">⬇ Export log</button>
   <button class="link" id="dashLink">📊 Dashboard</button>
   <button class="link" id="footSignOut" hidden>Sign out</button>
   <div class="syncline" id="sync"></div>
@@ -510,7 +503,6 @@ const CFG = window.LIFT_CONFIG || {};
 const CONFIGURED = !!(CFG.supabaseUrl && CFG.supabaseAnonKey);
 let sb = null;          // Supabase client once loaded
 let user = null;        // signed-in user
-let skipLogin = lsGet("lift-skip-login", false); // chose "continue without an account" (remembered)
 
 function makeTable(name, key, fields, sortFn) {
   const pk = key + "-pending", dk = key + "-deleted";
@@ -535,10 +527,6 @@ function makeTable(name, key, fields, sortFn) {
       Sync.push();
     },
     pending: () => lsGet(pk, []).length + lsGet(dk, []).length,
-    queueAllLocal() {                       // one-time import of data logged before the DB existed
-      const have = new Set(lsGet(pk, []).map(r => r.id));
-      lsSet(pk, lsGet(pk, []).concat(lsGet(key, []).filter(r => !have.has(r.id))));
-    },
     async flush() {
       const adds = lsGet(pk, []), dels = lsGet(dk, []);
       for (let i = 0; i < adds.length; i += 500) {
@@ -613,7 +601,7 @@ const Sync = {
     const waiting = TABLES.reduce((n, t) => n + t.pending(), 0);
     let cls = "", txt = "Saved on this phone only";
     if (CONFIGURED) {
-      if (!user) { cls = waiting ? "wait" : ""; txt = waiting ? `${waiting} waiting · sign in to sync` : "Not signed in · saving on this phone"; }
+      if (!user) { cls = waiting ? "wait" : ""; txt = waiting ? `${waiting} waiting · will sync after sign-in` : "Connecting…"; }
       else if (!this.online()) { cls = "wait"; txt = waiting ? `Offline · ${waiting} waiting to sync` : "Offline · will sync later"; }
       else if (this.state === "err") { cls = "err"; txt = `Sync problem · ${waiting} waiting · will retry`; }
       else if (waiting) { cls = "wait"; txt = `Syncing ${waiting}…`; }
@@ -704,9 +692,6 @@ function onSignedIn() {
   const owner = lsGet("lift-owner", null);
   if (owner && owner !== user.id) clearLocalData();
   lsSet("lift-owner", user.id);
-  lsSet("lift-skip-login", false); skipLogin = false;
-  const flag = "lift-imported-" + user.id;
-  if (!lsGet(flag, false)) { TABLES.forEach(t => t.queueAllLocal()); lsSet(flag, true); }
   render();
   Sync.full();
 }
@@ -780,8 +765,7 @@ function renderLogin() {
       </form>
       <div class="msg" id="msg"></div>
     </div>
-    <div class="small-actions"><button class="link" id="skipLogin">Continue without an account</button></div>
-    <div class="hint" style="text-align:center">Without an account, lifts stay on this phone only.</div>`;
+`;
   const msg = (t, bad) => { const m = $("msg"); if (!m) return; m.textContent = t; m.className = "msg" + (bad ? " bad" : ""); };
   const friendly = e => {
     const m = (e && e.message) || String(e);
@@ -828,7 +812,6 @@ function renderLogin() {
     const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + location.pathname } });
     if (error) msg(friendly(error), true);
   };
-  $("skipLogin").onclick = () => { skipLogin = true; lsSet("lift-skip-login", true); render(); };
 }
 
 const e1rm = r => (r.weight_lb || 0) * (1 + (r.reps || 0) / 30); // Epley estimate, for ranking sets
@@ -919,46 +902,16 @@ function renderDashboard() {
       </div>`).join("")}
     </div>` : `<div class="card empty">No sets logged yet.<br>Fill in weight × reps and hit Finish.</div>`}
 
-    <div class="sec">Backup</div>
-    <div class="card backup">
-      <div class="last" style="margin-top:0">${Backup.last()
-        ? `Last backup: <b>${esc(prettyDate(new Date(Backup.last()).toISOString().slice(0, 10)))}</b>`
-        : `<b>No backup yet.</b> Save one to Files / iCloud Drive / Google Drive so your lifts survive a new phone.`}</div>
-      <div class="row2">
-        <button class="primary" id="bkSave">Back up now</button>
-        <button class="secondary" id="bkLoad">Restore</button>
-      </div>
-      <input type="file" id="bkFile" accept=".json,application/json" hidden>
-      <div class="msg" id="bkMsg"></div>
-    </div>
-
     <div class="actions"><button class="secondary" id="back">← Back</button></div>
     <div class="small-actions">
       ${Install.available() ? `<button class="link" id="installLink">📲 Install app</button>` : ""}
       ${user ? `<button class="link" id="signOut">Sign out (${esc(user.email || "")})</button>`
-             : CONFIGURED && sb ? `<button class="link" id="signIn">Sign in or create an account</button>` : ""}
+             : ""}
     </div>
     <div class="msg" id="dashMsg" style="text-align:center"></div>`;
 
   $("back").onclick = () => { view = "workout"; render(); window.scrollTo(0, 0); };
   if ($("installLink")) $("installLink").onclick = () => Install.go();
-  $("bkSave").onclick = async () => {
-    const saved = await Backup.save();
-    if (saved) render();
-  };
-  $("bkLoad").onclick = () => $("bkFile").click();
-  $("bkFile").onchange = async () => {
-    const f = $("bkFile").files[0];
-    if (!f) return;
-    try {
-      const r = await Backup.restore(f);
-      render();
-      $("bkMsg").textContent = `Restored ${r.sets} sets and ${r.bodyweight} weigh-ins (${r.skipped} already here).`;
-    } catch (e) {
-      $("bkMsg").textContent = e.message || "That file couldn't be read.";
-      $("bkMsg").className = "msg bad";
-    }
-  };
   $("bwSave").onclick = () => {
     const v = parseFloat($("bwInput").value);
     if (!(v > 0)) return;
@@ -967,7 +920,6 @@ function renderDashboard() {
     render();
   };
   if ($("signOut")) $("signOut").onclick = () => signOutNow();
-  if ($("signIn")) $("signIn").onclick = () => { skipLogin = false; lsSet("lift-skip-login", false); render(); };
   wireRoutineSection();
 }
 
@@ -1300,7 +1252,7 @@ function render() {
   updatePick();
   const editing = view === "routine" || view === "workoutEdit" || view === "exPick";
   document.querySelector("footer").style.display = editing ? "none" : "";
-  if (CONFIGURED && sb && !user && !skipLogin) return renderLogin();
+  if (CONFIGURED && sb && !user) return renderLogin();
   if (view === "routine") return renderRoutineEditor();
   if (view === "workoutEdit") return renderWorkoutEditor();
   if (view === "exPick") return renderPicker();
@@ -1328,13 +1280,11 @@ function render() {
         <p>${logged} sets logged</p>
         <p style="margin-top:6px">Next up: <b>${esc(next.name)}</b>${SLOTS[nextSlot].d !== null ? ` (${DAY_FULL[SLOTS[nextSlot].d]})` : ""}</p>
       </div>
-      ${Backup.due() ? `<div class="nudge"><span>${Backup.last() ? "It's been over a week since your last backup." : "Back up your lifts so they survive a new phone."}</span><button class="primary" id="bkNudge">Back up</button></div>` : ""}
       <div class="actions">
         <button class="primary" id="nextDay">Start ${esc(next.name)}</button>
         <button class="secondary" id="dash">Dashboard</button>
       </div>`;
     $("dash").onclick = () => { view = "dashboard"; render(); window.scrollTo(0, 0); };
-    if ($("bkNudge")) $("bkNudge").onclick = async () => { if (await Backup.save()) render(); };
     $("nextDay").onclick = () => { state = fresh(nextSlot); save(); render(); };
     return;
   }
@@ -1454,7 +1404,7 @@ function confirmRestart() {
 // ------------------------------------------------------------ account -------
 // Header chip: green dot + email when signed in; tap for a menu with Sign out.
 function updateAcct() {
-  const showLogin = CONFIGURED && sb && !user && !skipLogin;
+  const showLogin = CONFIGURED && sb && !user;
   $("acct").hidden = !CONFIGURED || showLogin;
   $("footSignOut").hidden = !user;
   if ($("acct").hidden) { closeAcct(); return; }
@@ -1468,11 +1418,12 @@ function updateAcct() {
       : waiting ? `Syncing ${waiting}…` : "Everything synced";
     $("acctSignOut").textContent = "Sign out";
   } else {
-    $("acctEmail").textContent = "Not signed in";
+    // Only seen if the sign-in service couldn't load yet (e.g. opened with no signal)
+    $("acctEmail").textContent = "Connecting…";
     dot.className = "acct-dot off";
-    $("acctWho").innerHTML = `Not signed in<b>Lifts are saved on this phone only</b>`;
-    $("acctSync").textContent = waiting ? `${waiting} waiting to upload once you sign in` : "";
-    $("acctSignOut").textContent = "Sign in or create account";
+    $("acctWho").innerHTML = `Not connected yet<b>Your lifts save on this phone and sync once you're signed in</b>`;
+    $("acctSync").textContent = waiting ? `${waiting} waiting to upload` : "";
+    $("acctSignOut").textContent = "Sign in";
   }
   $("acctSignOut").classList.toggle("danger", !!user);
 }
@@ -1493,87 +1444,12 @@ document.addEventListener("click", closeAcct);
 $("acctDash").onclick = () => { closeAcct(); view = "dashboard"; render(); window.scrollTo(0, 0); };
 $("acctSignOut").onclick = () => {
   if (user) return signOutNow();
-  closeAcct(); skipLogin = false; lsSet("lift-skip-login", false); render();
+  closeAcct(); render();
 };
 $("footSignOut").onclick = () => signOutNow();
 
 $("dashLink").onclick = () => { view = "dashboard"; render(); window.scrollTo(0, 0); };
-$("export").onclick = () => {
-  const log = Sets.all();
-  const cols = ["id", "session_id", "logged_at", "date", "workout", "exercise", "set_number", "weight_lb", "reps"];
-  const q = v => v == null ? "" : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
-  const csv = [cols.join(",")].concat(log.map(r => cols.map(c => q(r[c])).join(","))).join("\n");
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-  a.download = `lift-log-${localDate()}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
-};
 
-// ------------------------------------------------------------ backup --------
-// A backup is one .json file with every set, weigh-in, and the plan.
-// On phones it opens the share sheet → "Save to Files" (iCloud Drive / Google Drive),
-// so it survives deleting the app, clearing the browser, or a new phone.
-const Backup = {
-  KEY: "lift-last-backup",
-  last: () => lsGet("lift-last-backup", null),
-  due() {
-    const hasData = Sets.all().length + Bodyweight.all().length > 0;
-    const l = this.last();
-    return hasData && (!l || Date.now() - l > 7 * 864e5);
-  },
-  build() {
-    return { app: "lift", version: 1, exported_at: new Date().toISOString(),
-             sets: Sets.all(), bodyweight: Bodyweight.all(), plan: lsGet(PLAN_KEY, null) };
-  },
-  download(blob, name) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-  },
-  async save() {
-    const name = `lift-backup-${localDate()}.json`;
-    const blob = new Blob([JSON.stringify(this.build())], { type: "application/json" });
-    let file = null;
-    try { file = new File([blob], name, { type: "application/json" }); } catch (e) {}
-    try {
-      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: "Lift backup" });
-      } else {
-        this.download(blob, name);
-      }
-    } catch (e) {
-      if (e && e.name === "AbortError") return false;   // user closed the share sheet
-      this.download(blob, name);
-    }
-    lsSet(this.KEY, Date.now());
-    return true;
-  },
-  async restore(file) {
-    let data;
-    try { data = JSON.parse(await file.text()); } catch (e) { throw new Error("That isn't a Lift backup file."); }
-    if (!data || data.app !== "lift" || !Array.isArray(data.sets)) throw new Error("That isn't a Lift backup file.");
-    const okSet = r => r && typeof r.id === "string" && r.session_id && r.date && r.workout && r.exercise && r.set_number;
-    const okBw = r => r && typeof r.id === "string" && r.date && Number(r.weight_lb) > 0;
-    const haveS = new Set(Sets.all().map(r => r.id));
-    const haveB = new Set(Bodyweight.all().map(r => r.id));
-    const newS = data.sets.filter(okSet).filter(r => !haveS.has(r.id));
-    const newB = (data.bodyweight || []).filter(okBw).filter(r => !haveB.has(r.id));
-    if (newS.length) Sets.add(newS);
-    if (newB.length) Bodyweight.add(newB);
-    const incoming = normalizeStore(data.plan);
-    if (incoming) {   // add their custom routines/exercises; keep anything already here
-      const haveR = new Set(STORE.custom.map(r => r.id)), haveE = new Set(STORE.exercises.map(e => e.n.toLowerCase()));
-      STORE.custom.push(...incoming.custom.filter(r => !haveR.has(r.id)));
-      STORE.exercises.push(...incoming.exercises.filter(e => !haveE.has(e.n.toLowerCase())));
-      if (!lsGet(PLAN_KEY, null)) STORE.selected = incoming.selected;
-      saveStore();
-    }
-    return { sets: newS.length, bodyweight: newB.length,
-             skipped: data.sets.length + (data.bodyweight || []).length - newS.length - newB.length };
-  },
-};
-// Ask the browser not to auto-clear this app's data
-if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
 // ------------------------------------------------------- install app --------
 // Android/desktop Chrome: real install prompt. iPhone: Apple has no API for this,
