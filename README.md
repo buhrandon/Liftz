@@ -42,20 +42,17 @@ At this point the app works in phone-only mode. The footer says *"Saved on this 
 3. You should see *"Success. No rows returned."*
 4. Check **Table Editor**. It should list `sets`, `bodyweight`, and `user_plan`.
 
-### Step 3: Set up sign-in by email code
-The app signs you in with a 6-digit code sent to your email. A code works inside the home-screen app. A link would open in Safari instead, and Safari keeps a separate login from the home-screen app.
+### Step 3: Turn on email + password sign-in
+People sign up with an email and password, right in the app. No emails are sent, so it's free and works for anyone.
 
-1. **Authentication → Sign In / Providers → Email**: make sure **Email** is enabled.
-2. **Authentication → Email Templates → Magic Link**: replace the body with:
-   ```html
-   <h2>Your Lift sign-in code</h2>
-   <p style="font-size:28px;font-weight:bold;letter-spacing:4px">{{ .Token }}</p>
-   <p>Or <a href="{{ .ConfirmationURL }}">tap here to sign in</a> in your browser.</p>
-   ```
-3. Do the same for the **Confirm signup** template. Supabase uses it the very first time you sign in.
-4. **Authentication → URL Configuration**:
-   - **Site URL:** `https://<your-username>.github.io/lift/`
-   - **Redirect URLs:** add the same URL
+1. **Authentication → Sign In / Providers → Email**:
+   - **Enable Email provider:** on
+   - **Confirm email:** **off** (Supabase's built-in email only reaches your own team, so confirmation emails would never arrive for other people)
+   - Click **Save**.
+2. **Authentication → Sign In / Providers**, then the user signups setting: **Allow new users to sign up** = **on**.
+3. **Authentication → URL Configuration**:
+   - **Site URL:** `https://<your-username>.github.io/<repo>/`
+   - **Redirect URLs:** add the same URL (Google sign-in returns here)
 
 ### Step 4: Connect the app
 1. **Project Settings → API** (or the **Connect** button at the top).
@@ -71,13 +68,27 @@ The app signs you in with a 6-digit code sent to your email. A code works inside
 
 > The **anon** key is meant to be public, so it's fine for it to be visible on GitHub Pages. Your data is protected by the row-level security rules in `schema.sql`: every row belongs to a user, and only that signed-in user can read or change it. **Never** put the `service_role` key in this app.
 
-### Step 5: Sign in
+### Step 5: Create your account
 1. Open the app. If it doesn't update, close it fully and reopen.
-2. It now shows a **Sign in** screen. Enter your email → **Send code** → type the 6-digit code → **Sign in**.
-3. Everything you logged in phone-only mode uploads automatically. The footer should say **● Synced**.
+2. On the **Sign in** screen, tap **Create account**, enter your email and a password (6+ characters), then tap **Create account**.
+3. Everything you logged before uploads automatically. The footer should say **● Synced**.
 
-### Step 6: Lock it to just you (recommended)
-Once you've signed in once, **Authentication → Sign In / Providers → turn off "Allow new users to sign up."** Your account keeps working, and nobody else can create one on your project.
+Anyone with the link can do the same. Each account only ever sees its own data, enforced by the database rules in `schema.sql`. If a different person signs in on the same phone, the app starts them clean instead of mixing in the last person's lifts.
+
+### Step 6 (optional): Sign in with Google
+Free, about 10 minutes, done once:
+
+1. Go to **console.cloud.google.com**, create a project (e.g. "Lift").
+2. **APIs & Services → OAuth consent screen**: choose **External**, enter an app name and your email, then save. Add yourself as a test user, or click **Publish app** so anyone can use it.
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
+   - Application type: **Web application**
+   - **Authorized JavaScript origins:** `https://<your-username>.github.io`
+   - **Authorized redirect URIs:** `https://<your-project-ref>.supabase.co/auth/v1/callback`
+   - Click **Create** and copy the **Client ID** and **Client secret**.
+4. In Supabase: **Authentication → Sign In / Providers → Google**. Turn it on, paste the Client ID and secret, and save.
+5. In `config.js`, set `googleSignIn: true` and commit. The **Continue with Google** button appears on the sign-in screen.
+
+> On iPhone, Google sign-in works in Safari. From a home-screen app, iOS may open Google in a separate browser window, so email + password is the most reliable option there.
 
 ### Step 7: Your routines sync automatically
 Your routines, your own exercises, and which routine is selected are saved to the `user_plan` table as soon as you sign in, and again every time you change them. Sign in on another device and they show up there.
@@ -94,7 +105,7 @@ Run through this once after setup:
 - [ ] Turn on airplane mode → log a set → footer says *Offline · 1 waiting to sync* → turn airplane mode off → it changes to **Synced**
 - [ ] Open the app on a second device and sign in → "Last Upper A" and the Dashboard show the same history
 - [ ] Dashboard → log a bodyweight → it appears in **Table Editor → bodyweight**
-- [ ] (After Step 6) Try to sign in with a different email → it should be refused
+- [ ] Create a second test account → it starts empty and can't see your lifts
 
 ---
 
@@ -112,7 +123,7 @@ Run through this once after setup:
 | ● Synced | Everything is in the database |
 | ● Syncing 3… / Offline · 3 waiting | Saved on the phone, will upload |
 | ● Sync problem · will retry | Supabase returned an error (see below) |
-| Not signed in | You tapped "Continue without syncing". Data is waiting and uploads once you sign in |
+| Not signed in | You tapped "Continue without an account". Data is waiting and uploads once you sign in (Dashboard → **Sign in or create an account**) |
 
 ## Backups (no database needed)
 
@@ -149,8 +160,9 @@ order by date;
 |---|---|
 | No sign-in screen after adding keys | Make sure `config.js` was committed and GitHub Pages redeployed (~1 min). Close and reopen the app. |
 | "Sync problem" | On a computer, open the app → right-click → Inspect → Console. The error is logged there. Most common cause: `schema.sql` wasn't run, or a typo in the URL/key. |
-| Email has a link but no code | The template edit in Step 3 didn't save. Check **both** Magic Link and Confirm signup. |
-| "Signups not allowed" on first sign-in | You did Step 6 before Step 5. Turn sign-ups back on, sign in, then turn them off again. |
+| "Signups not allowed" | Turn **Allow new users to sign up** back on (Step 3). |
+| "Account created. Confirm it from the email…" | **Confirm email** is still on. Turn it off (Step 3), then sign in. |
+| Forgot password | In Supabase → **Authentication → Users**, delete the user, then sign up again. Their lifts stay in the `sets` table but won't be linked to the new account. |
 | Free project paused | Supabase pauses free projects after ~1 week with no activity. Click **Restore** in the dashboard. Your data is kept, and the app keeps saving on the phone meanwhile. |
 
 ## Routines

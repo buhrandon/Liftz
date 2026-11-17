@@ -100,6 +100,14 @@
   .login input:focus, .bw input:focus { outline: none; border-color: var(--accent); }
   .msg { font-size: 14px; color: var(--muted); margin-top: 10px; min-height: 1em; }
   .msg.bad { color: #ff6b6b; }
+  .login form { margin: 0; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 4px; margin-bottom: 14px; }
+  .seg button { background: none; color: var(--muted); padding: 10px; font-size: 15px; border-radius: 9px; }
+  .seg button.on { background: var(--card); color: var(--text); box-shadow: 0 0 0 1px var(--line); }
+  .gbtn { width: 100%; background: #fff; color: #1f1f1f; font-size: 17px; padding: 15px; }
+  .or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; margin: 16px 0; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
   .bw { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
   .bw input { margin: 0; }
   .bw button { padding: 14px 18px; font-size: 16px; }
@@ -456,7 +464,7 @@ const CFG = window.LIFT_CONFIG || {};
 const CONFIGURED = !!(CFG.supabaseUrl && CFG.supabaseAnonKey);
 let sb = null;          // Supabase client once loaded
 let user = null;        // signed-in user
-let skipLogin = false;  // "continue without syncing" for this visit
+let skipLogin = lsGet("lift-skip-login", false); // chose "continue without an account" (remembered)
 
 function makeTable(name, key, fields, sortFn) {
   const pk = key + "-pending", dk = key + "-deleted";
@@ -638,7 +646,18 @@ function initDb() {
   s.onerror = () => { console.warn("Could not load Supabase (offline?)"); Sync.show(); };
   document.head.appendChild(s);
 }
+// Data on this phone belongs to whoever last signed in here. If a different
+// account signs in, start it clean instead of mixing in the last person's lifts.
+function clearLocalData() {
+  ["lift-log-v1", "lift-bw-v1"].forEach(k => ["", "-pending", "-deleted"].forEach(s => { try { localStorage.removeItem(k + s); } catch (e) {} }));
+  [PLAN_KEY, PLAN_DIRTY, KEY].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  STORE = emptyStore(); state = null; applyRoutine(); state = fresh(0); save();
+}
 function onSignedIn() {
+  const owner = lsGet("lift-owner", null);
+  if (owner && owner !== user.id) clearLocalData();
+  lsSet("lift-owner", user.id);
+  lsSet("lift-skip-login", false); skipLogin = false;
   const flag = "lift-imported-" + user.id;
   if (!lsGet(flag, false)) { TABLES.forEach(t => t.queueAllLocal()); lsSet(flag, true); }
   render();
@@ -689,44 +708,80 @@ function lastTime(exName, workout) {
 // =============================================================================
 // SCREENS
 // =============================================================================
+// Email + password sign-in: no emails are sent, so anyone can make a free account.
+// "Continue with Google" appears when googleSignIn is true in config.js.
+let authMode = "signin"; // "signin" | "signup"
 function renderLogin() {
-  $("day").textContent = "Sign in";
-  $("sub").textContent = "So your lifts sync to the database";
+  const signup = authMode === "signup";
+  $("day").textContent = signup ? "Create account" : "Sign in";
+  $("sub").textContent = "Save your lifts and sync them to any device";
   $("barwrap").style.display = "none";
   $("undo").disabled = true;
   $("main").innerHTML = `
     <div class="card login">
-      <p>Enter your email. You'll get a 6-digit code (and a link) — type the code here.</p>
-      <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(lsGet("lift-email", ""))}">
-      <button class="primary" id="send" style="width:100%">Send code</button>
-      <div id="codebox" style="display:none;margin-top:14px">
-        <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="6-digit code">
-        <button class="primary" id="verify" style="width:100%">Sign in</button>
+      ${CFG.googleSignIn ? `
+        <button class="gbtn" id="google">Continue with Google</button>
+        <div class="or"><span>or</span></div>` : ""}
+      <div class="seg">
+        <button class="${signup ? "" : "on"}" id="tabIn">Sign in</button>
+        <button class="${signup ? "on" : ""}" id="tabUp">Create account</button>
       </div>
+      <form id="authForm" novalidate>
+        <input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="Email" value="${esc(lsGet("lift-email", ""))}">
+        <input id="password" type="password" autocomplete="${signup ? "new-password" : "current-password"}" placeholder="${signup ? "Password (6+ characters)" : "Password"}">
+        <button class="primary" id="authGo" type="submit" style="width:100%">${signup ? "Create account" : "Sign in"}</button>
+      </form>
       <div class="msg" id="msg"></div>
     </div>
-    <div class="small-actions"><button class="link" id="skipLogin">Continue without syncing</button></div>`;
+    <div class="small-actions"><button class="link" id="skipLogin">Continue without an account</button></div>
+    <div class="hint" style="text-align:center">Without an account, lifts stay on this phone only.</div>`;
   const msg = (t, bad) => { const m = $("msg"); if (!m) return; m.textContent = t; m.className = "msg" + (bad ? " bad" : ""); };
-  $("send").onclick = async () => {
-    const email = $("email").value.trim();
-    if (!email) return msg("Enter your email first.", true);
+  const friendly = e => {
+    const m = (e && e.message) || String(e);
+    if (/invalid login credentials/i.test(m)) return "Wrong email or password.";
+    if (/already registered|already exists/i.test(m)) return "That email already has an account. Sign in instead.";
+    if (/email not confirmed/i.test(m)) return "This account still needs its email confirmed.";
+    if (/password should be at least/i.test(m)) return "Password needs to be at least 6 characters.";
+    if (/valid email|invalid.*email/i.test(m)) return "That email doesn't look right.";
+    if (/provider is not enabled/i.test(m)) return "Google sign-in isn't turned on yet.";
+    if (/failed to fetch|network/i.test(m)) return "Can't reach the server. Check your connection.";
+    return m;
+  };
+  $("tabIn").onclick = () => { authMode = "signin"; render(); };
+  $("tabUp").onclick = () => { authMode = "signup"; render(); };
+  $("authForm").onsubmit = async ev => {
+    ev.preventDefault();
+    const email = $("email").value.trim(), password = $("password").value;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return msg("Enter your email.", true);
+    if (!password) return msg("Enter your password.", true);
+    if (signup && password.length < 6) return msg("Password needs to be at least 6 characters.", true);
     lsSet("lift-email", email);
-    msg("Sending…");
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
-    if (error) return msg(error.message, true);
-    $("codebox").style.display = "";
-    msg("Check your email for the code.");
-    $("code").focus();
+    $("authGo").disabled = true;
+    msg(signup ? "Creating your account…" : "Signing in…");
+    try {
+      const res = signup
+        ? await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } })
+        : await sb.auth.signInWithPassword({ email, password });
+      if (res.error) throw res.error;
+      if (signup && !(res.data && res.data.session)) {
+        if (res.data && res.data.user && Array.isArray(res.data.user.identities) && res.data.user.identities.length === 0) {
+          throw new Error("User already registered");
+        }
+        authMode = "signin"; render();
+        return msg("Account created. Confirm it from the email we sent, then sign in.");
+      }
+      msg("");   // signed in: the auth listener takes it from here
+    } catch (e) {
+      msg(friendly(e), true);
+      if ($("authGo")) $("authGo").disabled = false;
+    }
   };
-  $("verify").onclick = async () => {
-    const email = $("email").value.trim(), token = $("code").value.trim();
-    if (!token) return msg("Enter the code from the email.", true);
-    msg("Checking…");
-    const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
-    if (error) return msg(error.message, true);
-    msg("");
+  if ($("google")) $("google").onclick = async () => {
+    msg("Opening Google…");
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + location.pathname } });
+    if (error) msg(friendly(error), true);
   };
-  $("skipLogin").onclick = () => { skipLogin = true; render(); };
+  $("skipLogin").onclick = () => { skipLogin = true; lsSet("lift-skip-login", true); render(); };
 }
 
 const e1rm = r => (r.weight_lb || 0) * (1 + (r.reps || 0) / 30); // Epley estimate, for ranking sets
@@ -834,7 +889,7 @@ function renderDashboard() {
     <div class="small-actions">
       ${Install.available() ? `<button class="link" id="installLink">📲 Install app</button>` : ""}
       ${user ? `<button class="link" id="signOut">Sign out (${esc(user.email || "")})</button>`
-             : CONFIGURED && sb ? `<button class="link" id="signIn">Sign in to sync</button>` : ""}
+             : CONFIGURED && sb ? `<button class="link" id="signIn">Sign in or create an account</button>` : ""}
     </div>
     <div class="msg" id="dashMsg" style="text-align:center"></div>`;
 
@@ -865,7 +920,7 @@ function renderDashboard() {
     render();
   };
   if ($("signOut")) $("signOut").onclick = async () => { await sb.auth.signOut(); user = null; view = "workout"; render(); Sync.show(); };
-  if ($("signIn")) $("signIn").onclick = () => { skipLogin = false; render(); };
+  if ($("signIn")) $("signIn").onclick = () => { skipLogin = false; lsSet("lift-skip-login", false); render(); };
   wireRoutineSection();
 }
 
