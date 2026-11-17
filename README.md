@@ -1,15 +1,15 @@
 # Lift
 
-A one-screen workout tracker for a 4-day Upper/Lower split. It shows the next exercise, logs weight × reps, remembers what you did last time, and syncs to a free Supabase database.
+A one-screen workout tracker. Pick a routine (or build your own), and it shows the next exercise, logs weight × reps, remembers what you did last time, and syncs everything to a free Supabase database.
 
-It works with **no database at all**: leave `config.js` blank and everything is saved on your phone. Add the database whenever you're ready, and whatever you've already logged gets uploaded automatically.
+Everyone signs in with email + password (or Google), so their lifts follow them to any device. Sets logged with no signal are saved on the phone and upload when the connection comes back.
 
 ## Files
 
 | File | What it is |
 |---|---|
 | `index.html` | The whole app |
-| `config.js` | Your Supabase URL + key (blank = phone-only mode) |
+| `config.js` | Your Supabase URL + publishable key, and the Google sign-in switch |
 | `schema.sql` | Database tables, security rules, and handy views. Paste it into Supabase once. |
 | `manifest.webmanifest`, `icon-*.png` | Home-screen app icon and name |
 | `sw.js` | Lets the app open offline and lets Android install it |
@@ -25,7 +25,7 @@ It works with **no database at all**: leave `config.js` blank and everything is 
 4. About a minute later, open `https://<your-username>.github.io/lift/` on your phone.
 5. Tap **Install** on the banner in the app. Android shows the install popup. iPhone shows the Share → **Add to Home Screen** steps, since Apple doesn't let websites do it automatically.
 
-At this point the app works in phone-only mode. The footer says *"Saved on this phone only."*
+The app needs the database (Part 2) before anyone can sign in and log lifts.
 
 ---
 
@@ -71,7 +71,7 @@ People sign up with an email and password, right in the app. No emails are sent,
 ### Step 5: Create your account
 1. Open the app. If it doesn't update, close it fully and reopen.
 2. On the **Sign in** screen, tap **Create account**, enter your email and a password (6+ characters), then tap **Create account**.
-3. Everything you logged before uploads automatically. The footer should say **● Synced**.
+3. The footer should say **● Synced**, and the header shows your email with a green dot.
 
 Anyone with the link can do the same. Each account only ever sees its own data, enforced by the database rules in `schema.sql`. If a different person signs in on the same phone, the app starts them clean instead of mixing in the last person's lifts.
 
@@ -123,18 +123,6 @@ Run through this once after setup:
 | ● Synced | Everything is in the database |
 | ● Syncing 3… / Offline · 3 waiting | Saved on the phone, will upload |
 | ● Sync problem · will retry | Supabase returned an error (see below) |
-| Not signed in | You tapped "Continue without an account". Data is waiting and uploads once you sign in (Dashboard → **Sign in or create an account**) |
-
-## Backups (no database needed)
-
-Without the database, everything lives in the phone's browser storage. That's wiped if the app is deleted from the home screen, Safari's website data is cleared, or the phone is replaced. To protect it:
-
-- **Dashboard → Back up now** opens the share sheet. Tap **Save to Files** and pick iCloud Drive or Google Drive. You get one `lift-backup-YYYY-MM-DD.json` file with every set, weigh-in, and the plan.
-- **Dashboard → Restore** loads a backup file. It merges with what's already there, so restoring the same file twice never duplicates anything.
-- If it's been more than 7 days since the last backup, the workout-complete screen shows a reminder.
-- The app also asks the browser for "persistent storage," so the phone doesn't auto-clear it.
-
-If the database is connected, restored data also uploads to Supabase.
 
 ## Looking at your data in Supabase
 
