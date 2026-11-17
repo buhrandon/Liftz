@@ -2,7 +2,7 @@
 // and lets Android offer "Install app".
 // Strategy: always try the network first (so updates show up right away),
 // fall back to the cached copy when offline.
-const CACHE = "lift-v5";
+const CACHE = "lift-v6";
 const CORE = ["./", "index.html", "config.js", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {

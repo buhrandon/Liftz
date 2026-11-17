@@ -343,6 +343,14 @@ const TEMPLATES = {
       [x("Bulgarian split squat", "8–10 each", MID)], [x("Cable flyes", "12–15", ISO)],
       [x("Rope hammer curls", "10–12", "To failure"), x("Overhead cable triceps ext.", "10–12", "To failure")] ] },
   ] },
+  "calisthenics": { label: "Calisthenics", blurb: "3 days · bodyweight + goblet squats", sets: 3, days: [1, 3, 5], workouts: [
+    { name: "Calisthenics", blocks: [
+      [x("Pull-ups", "5–12", "Palms forward or neutral grip · stop 1 rep shy · rest 2 min")],
+      [x("Dips", "6–12", "Lean slightly forward · stop 1 rep shy · rest 2 min")],
+      [x("Push-ups", "10–20", "To failure · rest 90 sec")],
+      [x("Goblet squat", "10–15", "Hold a dumbbell or kettlebell at your chest · rest 90 sec")],
+      [x("Bodyweight squat", "15–25", "To failure · rest 60–90 sec")] ] },
+  ] },
 };
 // Which weekday(s) each built-in workout lands on (0 = Sun … 6 = Sat)
 const DEFAULT_DAYS = {
@@ -351,8 +359,9 @@ const DEFAULT_DAYS = {
   "ppl":         [[1], [3], [5]],
   "bro":         [[1], [2], [3], [4], [5]],
   "full-body":   [[1], [3], [5]],
+  "calisthenics": [[1, 3, 5]],
 };
-const DEFAULT_ORDER = ["upper-lower", "push-pull", "ppl", "bro", "full-body"];
+const DEFAULT_ORDER = ["upper-lower", "push-pull", "ppl", "bro", "full-body", "calisthenics"];
 
 // Standard exercise list for the picker (grouped). Users can add their own.
 const EXERCISE_LIBRARY = {
@@ -366,7 +375,7 @@ const EXERCISE_LIBRARY = {
     "Preacher curl", "Incline DB curl", "Cable curl"],
   "Triceps": ["Rope pushdowns", "Overhead cable triceps ext.", "Skull crushers", "Close-grip bench press", "Triceps dips"],
   "Quads": ["Back squat", "Front squat", "Hack squat", "Leg press", "Bulgarian split squat", "Walking lunges",
-    "Goblet squat", "Step-ups", "Leg extension"],
+    "Goblet squat", "Bodyweight squat", "Step-ups", "Leg extension"],
   "Hamstrings & glutes": ["Romanian deadlift", "Deadlift", "Trap-bar deadlift", "Lying leg curl", "Seated leg curl",
     "Hip thrust", "Glute bridge", "Good mornings", "Nordic curl"],
   "Calves": ["Standing calf raise", "Seated calf raise"],
@@ -392,7 +401,7 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 // =============================================================================
 function defaultRoutine(key) {
   const t = TEMPLATES[key];
-  return { id: "default:" + key, name: t.label, builtin: true, sets: 2,
+  return { id: "default:" + key, name: t.label, builtin: true, sets: t.sets || 2,
            workouts: t.workouts.map((w, i) => ({ name: w.name, days: [...DEFAULT_DAYS[key][i]], blocks: clone(w.blocks) })) };
 }
 const emptyStore = () => ({ v: 3, selected: "default:upper-lower", custom: [], exercises: [] });
