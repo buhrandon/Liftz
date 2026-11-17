@@ -31,7 +31,7 @@
     padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
   header { margin-bottom: 16px; }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-  .flex { width: 44px; height: 44px; color: var(--accent); flex-shrink: 0; }
+  .top .day { min-width: 0; overflow-wrap: anywhere; }
   .day { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; }
   .sub { color: var(--muted); font-size: 15px; margin-top: 2px; }
   .bar { height: 6px; background: var(--line); border-radius: 3px; margin-top: 12px; overflow: hidden; }
@@ -190,16 +190,16 @@
   .exrow { width: 100%; background: none; color: var(--text); font-weight: 400; border-radius: 0; padding: 13px 0; text-align: left; }
   .exrow .r { color: var(--accent); font-size: 20px; font-weight: 700; }
   select.tin { appearance: none; -webkit-appearance: none; }
-  .acct { position: relative; display: flex; justify-content: flex-start; margin: -4px 0 8px; }
+  .acct { position: relative; display: flex; justify-content: flex-end; flex-shrink: 1; min-width: 0; }
   .acct-btn { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; background: var(--card); color: var(--text);
     border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px 6px 10px; font-size: 13px; font-weight: 600; }
   .acct-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
     box-shadow: 0 0 0 3px rgba(61,220,132,.18); }
   .acct-dot.off { background: var(--muted); box-shadow: none; }
   .acct-dot.wait { background: var(--warn); box-shadow: 0 0 0 3px rgba(245,165,36,.18); }
-  .acct-email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 62vw; }
+  .acct-email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 38vw; }
   .acct-caret { color: var(--muted); font-size: 11px; }
-  .acct-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; min-width: 240px; max-width: calc(100vw - 32px);
+  .acct-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; min-width: 240px; max-width: calc(100vw - 32px);
     background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
   .acct-who { padding: 10px 10px 2px; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
   .acct-who b { color: var(--text); display: block; font-size: 15px; margin-top: 2px; }
@@ -239,24 +239,19 @@
 </head>
 <body>
 <header>
-  <div class="acct" id="acct" hidden>
-    <button class="acct-btn" id="acctBtn" aria-haspopup="true" aria-expanded="false">
-      <span class="acct-dot" id="acctDot"></span><span class="acct-email" id="acctEmail"></span><span class="acct-caret">▾</span>
-    </button>
-    <div class="acct-menu" id="acctMenu" hidden>
-      <div class="acct-who" id="acctWho"></div>
-      <div class="acct-sync" id="acctSync"></div>
-      <button class="acct-item" id="acctDash">📊 Dashboard</button>
-      <button class="acct-item danger" id="acctSignOut">Sign out</button>
-    </div>
-  </div>
   <div class="top">
     <div class="day" id="day"></div>
-    <svg class="flex" viewBox="0 0 64 64" aria-hidden="true">
-      <path fill="currentColor" d="M2 35 C7 23 28 19 37 34 C38 30 39.5 26 41 23 L36 23 C33.5 23 32 21.5 32 19.5 C32 17.8 33 16.6 34.3 16.3 C32.8 15.8 32 14.6 32 13.4 C32 12 33 11 34.3 10.8 C33 10.2 32.4 9.2 32.6 8 C33 5.8 35.6 4.6 39 4.6 L46 4.6 C50 4.6 53 7.6 52.6 11.5 L51.6 21.5 L58 46 C60 54 55 59 48 59 L2 59 Z"/>
-      <g fill="none" stroke="var(--bg)" stroke-width="1.6" stroke-linecap="round"><path d="M35.5 19.8 Q41 20.6 45 16.5"/><path d="M37 34 Q40.5 42 39 51"/></g>
-      <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M13 14 l2 4"/><path d="M20 11 v5"/><path d="M7 19 l3 3"/></g>
-    </svg>
+    <div class="acct" id="acct" hidden>
+      <button class="acct-btn" id="acctBtn" aria-haspopup="true" aria-expanded="false">
+        <span class="acct-dot" id="acctDot"></span><span class="acct-email" id="acctEmail"></span><span class="acct-caret">▾</span>
+      </button>
+      <div class="acct-menu" id="acctMenu" hidden>
+        <div class="acct-who" id="acctWho"></div>
+        <div class="acct-sync" id="acctSync"></div>
+        <button class="acct-item" id="acctDash">📊 Dashboard</button>
+        <button class="acct-item danger" id="acctSignOut">Sign out</button>
+      </div>
+    </div>
   </div>
   <div class="sub" id="sub"></div>
   <div class="bar" id="barwrap"><div id="bar"></div></div>
