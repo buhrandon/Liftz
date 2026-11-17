@@ -4,5 +4,5 @@
 window.LIFT_CONFIG = {
   supabaseUrl: "https://jubbaooegqedzizdfbrc.supabase.co",      // e.g. "https://abcdefghijkl.supabase.co"
   supabaseAnonKey: "sb_publishable_-n7-xUFm1vlof-lhABJy0g_cudeyRpw",  // the "anon" / "public" key (safe to publish; the database rules protect your data)
-  googleSignIn: false,  // set to true after turning on Google in Supabase (README → "Sign in with Google")
+  googleSignIn: true,   // shows "Continue with Google" (needs Google turned on in Supabase; README → "Sign in with Google")
 };
