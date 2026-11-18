@@ -31,7 +31,7 @@
     padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
   header { margin-bottom: 16px; }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-  .top .day { min-width: 0; overflow-wrap: anywhere; }
+  .top .day { flex: 1 1 auto; min-width: 0; }
   .day { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; }
   .sub { color: var(--muted); font-size: 15px; margin-top: 2px; }
   .bar { height: 6px; background: var(--line); border-radius: 3px; margin-top: 12px; overflow: hidden; }
@@ -79,8 +79,19 @@
   .last { font-size: 13px; color: var(--muted); margin-top: 8px; }
   .last b { color: var(--text); font-weight: 600; }
   .sets { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-  .set { display: grid; grid-template-columns: 52px 1fr 18px 1fr; align-items: center; gap: 8px; }
-  .set-label { font-size: 14px; color: var(--muted); font-weight: 600; }
+  .set { display: grid; grid-template-columns: 38px minmax(0, 1fr) 10px minmax(0, 1fr) 44px; align-items: center; gap: 6px; }
+  .set .field { min-width: 0; }
+  .set .field input { min-width: 0; padding: 12px 32px 12px 10px; font-size: 19px; }
+  .set .field span { right: 8px; font-size: 12px; }
+  @media (max-width: 370px) {
+    .set .field input { padding-right: 28px; font-size: 18px; }
+    .set .field span { right: 6px; font-size: 11px; }
+  }
+  .set-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .setdone { width: 44px; height: 46px; padding: 0; font-size: 20px; font-weight: 800; border-radius: 12px;
+    background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+  .set.set-ok .setdone { background: var(--accent); color: #062b15; border-color: var(--accent); }
+  .set.set-ok .set-label { color: var(--accent); }
   .set .x { text-align: center; color: var(--muted); }
   .field { position: relative; }
   .field input { width: 100%; font: inherit; font-size: 20px; font-weight: 600; color: var(--text);
@@ -190,14 +201,15 @@
   .exrow { width: 100%; background: none; color: var(--text); font-weight: 400; border-radius: 0; padding: 13px 0; text-align: left; }
   .exrow .r { color: var(--accent); font-size: 20px; font-weight: 700; }
   select.tin { appearance: none; -webkit-appearance: none; }
-  .acct { position: relative; display: flex; justify-content: flex-end; flex-shrink: 1; min-width: 0; }
+  .acct { position: relative; display: flex; justify-content: flex-end; flex: 0 1 auto; min-width: 0; max-width: 48%; }
+  .acct-btn { min-width: 0; }
   .acct-btn { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; background: var(--card); color: var(--text);
     border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px 6px 10px; font-size: 13px; font-weight: 600; }
   .acct-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
     box-shadow: 0 0 0 3px rgba(61,220,132,.18); }
   .acct-dot.off { background: var(--muted); box-shadow: none; }
   .acct-dot.wait { background: var(--warn); box-shadow: 0 0 0 3px rgba(245,165,36,.18); }
-  .acct-email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 38vw; }
+  .acct-email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .acct-caret { color: var(--muted); font-size: 11px; }
   .acct-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; min-width: 240px; max-width: calc(100vw - 32px);
     background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
@@ -212,7 +224,8 @@
   .restbar.done { border-color: var(--accent); background: #0f2a1b; animation: restflash 1s ease-in-out 3; }
   @keyframes restflash { 50% { background: #1b5c37; } }
   .rest-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-  .rest-label { font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .rest-top > div:first-child { min-width: 0; }
+  .rest-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
   .rest-time { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
   .rest-btns { display: flex; gap: 8px; }
   .rest-btns button { background: var(--card); color: var(--text); border: 1px solid var(--line); padding: 10px 14px; font-size: 15px; }
@@ -1589,7 +1602,7 @@ function render() {
           const d = state.draft[dkey(idx, ei, s + 1)] || {};
           const prev = last && last.sets.find(r => r.set_number === s + 1);
           return `
-            <div class="set">
+            <div class="set ${d.done ? "set-ok" : ""}">
               <div class="set-label">Set ${s + 1}</div>
               <div class="field"><input type="number" inputmode="decimal" step="any" min="0"
                 data-k="${dkey(idx, ei, s + 1)}" data-f="w" value="${esc(d.w ?? "")}"
@@ -1598,6 +1611,7 @@ function render() {
               <div class="field"><input type="number" inputmode="numeric" step="1" min="0"
                 data-k="${dkey(idx, ei, s + 1)}" data-f="r" value="${esc(d.r ?? "")}"
                 placeholder="${prev && prev.reps != null ? prev.reps : "0"}"><span>reps</span></div>
+              <button class="setdone" data-done="${dkey(idx, ei, s + 1)}" aria-label="Set ${s + 1} done, start rest">✓</button>
             </div>`;
         }).join("");
         return `
@@ -1634,6 +1648,16 @@ function render() {
       const ei = +inp.dataset.k.split("|")[1];
       if (inp.value !== "" && ei === block.length - 1) Rest.start(restForBlock(block), block.map(e => e.n).join(" + "));
     };
+  });
+
+  // ✓ on a set: mark it done and start the rest timer before the next set.
+  // In a superset, rest starts after the last exercise of the round.
+  document.querySelectorAll("[data-done]").forEach(btn => btn.onclick = () => {
+    const k = btn.dataset.done, ei = +k.split("|")[1];
+    const d = state.draft[k] = { ...(state.draft[k] || {}) };
+    d.done = !d.done; save();
+    btn.closest(".set").classList.toggle("set-ok", d.done);
+    if (d.done && ei === block.length - 1) Rest.start(restForBlock(block), block.map(e => e.n).join(" + "));
   });
 
   $("finish").onclick = () => {
